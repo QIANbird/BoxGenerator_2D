@@ -1,0 +1,14 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Container" style="flex-grow: 1; flex-direction: row;">
+        <ui:VisualElement name="ToolBar" style="flex-grow: 1; width: 0%; flex-direction: row; -unity-background-image-tint-color: rgb(255, 242, 242); background-color: rgb(238, 238, 238); right: 20%; left: 0%; min-width: 0%; max-width: 10%;">
+            <ui:Button text="rec" name="Btn_rectangle" style="width: 0%; height: 0%; font-size: 8px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="DrawingArea" style="flex-grow: 1; flex-direction: row; background-color: rgb(255, 255, 255);" />
+        <ui:VisualElement name="MaterialEditor" style="flex-grow: 0; flex-direction: column; background-color: rgb(236, 236, 236); width: 30%; max-width: 100%; flex-shrink: 0; align-content: flex-end; align-items: auto; justify-content: flex-start;">
+            <ui:TextField label="Promt" placeholder-text="filler text" name="PromptInput" style="flex-direction: column; align-items: stretch; align-content: flex-start; align-self: center; font-size: 8px;" />
+            <ui:VisualElement name="ResultPreview" style="flex-grow: 0; align-content: auto; width: 80%; height: 30%; align-self: center; align-items: auto; justify-content: flex-start; margin-left: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; background-color: rgb(255, 255, 255); -unity-background-scale-mode: stretch-to-fill; border-left-width: 1px; flex-shrink: 0; position: absolute; bottom: 5%; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-color: rgb(147, 147, 147); border-right-color: rgb(147, 147, 147); border-top-color: rgb(147, 147, 147); border-bottom-color: rgb(147, 147, 147); left: auto;" />
+            <ui:Button text="Generate" name="Btn_generate" style="align-self: center; font-size: 8px;" />
+            <ui:Label text="Please enter a material prompt." name="ErrorLabel" enabled="false" style="align-items: stretch; align-self: center; font-size: 8px; color: rgb(173, 38, 38);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
