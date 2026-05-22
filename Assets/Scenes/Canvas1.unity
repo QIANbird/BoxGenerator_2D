@@ -227,6 +227,8 @@ GameObject:
   - component: {fileID: 1210567948}
   - component: {fileID: 1210567950}
   - component: {fileID: 1210567949}
+  - component: {fileID: 1210567952}
+  - component: {fileID: 1210567951}
   m_Layer: 5
   m_Name: MainUI
   m_TagString: Untagged
@@ -275,7 +277,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210567941}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a619c8ea84d757541b01af9362345cef, type: 3}
   m_Name: 
@@ -296,7 +298,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210567941}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b9e1f43359e354541b9eae810904dd66, type: 3}
   m_Name: 
@@ -314,7 +316,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210567941}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b9388c685ca687c48a591de36f5a1923, type: 3}
   m_Name: 
@@ -336,7 +338,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210567941}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4df055c404075e44799178263c3a2de6, type: 3}
   m_Name: 
@@ -390,17 +392,38 @@ MonoBehaviour:
   wrapUserPrompt: 1
   promptPrefix: "\u8BF7\u4E25\u683C\u53C2\u8003\u8F93\u5165\u56FE\u4E2D\u7684\u9ED1\u8272\u77E9\u5F62\u7EBF\u6846\uFF0C\u53EA\u5728\u77E9\u5F62\u5185\u90E8\u751F\u6210\u4EE5\u4E0B\u6750\u8D28\uFF1A"
   promptSuffix: "\u4FDD\u6301\u77E9\u5F62\u5916\u90E8\u4E3A\u5E72\u51C0\u767D\u8272\u80CC\u666F\uFF0C\u4E0D\u8981\u6539\u53D8\u77E9\u5F62\u8F6E\u5ED3\uFF0C\u4E0D\u8981\u5728\u77E9\u5F62\u5916\u6DFB\u52A0\u989D\u5916\u7269\u4F53\u3002\u751F\u6210\u7ED3\u679C\u5E94\u50CF\u4E00\u4E2A\u88AB\u8BE5\u6750\u8D28\u586B\u5145\u7684\u5E73\u9762\u56FE\u5F62\uFF0C\u800C\u4E0D\u662F\u91CD\u65B0\u8BBE\u8BA1\u65B0\u7684\u7269\u4F53\u3002"
-  promptFieldName: prompt
-  referenceImageFieldName: reference_image
-  maskImageFieldName: mask_image
-  modelFieldName: model
-  widthFieldName: width
-  heightFieldName: height
-  seedFieldName: seed
-  stepsFieldName: steps
-  guidanceScaleFieldName: guidance_scale
-  referenceUploadFileName: reference.png
-  maskUploadFileName: mask.png
+  saveRequestJsonForDebug: 1
+--- !u!114 &1210567951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210567941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75f65c46905edb946bd352f9f5f92d22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 1210567942}
+  generateButtonName: Btn_rectangle
+  chestRenderer: {fileID: 1210567952}
+--- !u!114 &1210567952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210567941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b898c5972518cf140badc975970846ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 1210567942}
+  canvasElementName: DrawingArea
+  canvasOffset: {x: 300, y: 200}
+  logFaceData: 1
 --- !u!1 &1395582283
 GameObject:
   m_ObjectHideFlags: 0
