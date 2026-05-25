@@ -156,6 +156,10 @@ public class ChestRenderer2D : MonoBehaviour
 
             case "Body_bottom":
                 return Hex("#4a5759");//深绿色
+            case "Lid_left_side":
+                return Hex("#83c5be");//薄荷色
+            case "Lid_right_side":
+                return Hex("#006d77");//深薄荷色
 
             default:
                 return new Color(0.65f, 0.40f, 0.22f, 1f);
