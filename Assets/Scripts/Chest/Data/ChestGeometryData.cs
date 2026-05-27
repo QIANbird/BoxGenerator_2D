@@ -7,13 +7,17 @@ public class ChestGeometryData
 {
     public Dictionary<string, Vector3> points = new Dictionary<string, Vector3>();
 
+   // 用于填充颜色的面
     public List<ChestFaceData> faces = new List<ChestFaceData>();
+    // 用于单独绘制的可见轮廓线
+    public List<ChestEdgeData> outlineEdges = new List<ChestEdgeData>();
 
 
     public void Clear()
     {
         points.Clear(); 
         faces.Clear(); 
+        outlineEdges.Clear();
     }
 
     public void AddPoint(string pointName, Vector3 position)
@@ -50,6 +54,11 @@ public class ChestGeometryData
 
         faces.Add(new ChestFaceData(faceName, vertices3D, renderOrder, vertexNames));
     }
+     // 添加轮廓线：可以是直线，也可以是多段折线
+    public void AddOutlineEdge(string edgeName, List<Vector3> points3D, int renderOrder)
+    {
+        outlineEdges.Add(new ChestEdgeData(edgeName, points3D, renderOrder));
+    }
 }
 
 
@@ -76,5 +85,23 @@ public class ChestFaceData
         this.vertices3D = vertices3D;
         this.renderOrder = renderOrder;
         this.vertexNames = vertexNames;
+    }
+}
+
+[Serializable]
+public class ChestEdgeData
+{
+    public string edgeName;
+
+    // 两个点表示直线，多个点表示折线/曲线轮廓
+    public List<Vector3> points3D;
+
+    public int renderOrder;
+
+    public ChestEdgeData(string edgeName, List<Vector3> points3D, int renderOrder)
+    {
+        this.edgeName = edgeName;
+        this.points3D = points3D;
+        this.renderOrder = renderOrder;
     }
 }

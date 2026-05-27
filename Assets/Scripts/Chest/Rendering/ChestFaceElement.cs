@@ -12,11 +12,10 @@ public class ChestFaceElement : VisualElement
     private Color strokeColor;
 
     // Creates one drawable chest face from 2D vertices and colors.
-    public ChestFaceElement(List<Vector2> vertices2D, Color fillColor, Color strokeColor)
+    public ChestFaceElement(List<Vector2> vertices2D, Color fillColor)
     {
         this.vertices2D = vertices2D;
         this.fillColor = fillColor;
-        this.strokeColor = strokeColor;
 
         // UI Toolkit calls this when the element needs to be redrawn.
         generateVisualContent += OnGenerateVisualContent;
@@ -33,8 +32,6 @@ public class ChestFaceElement : VisualElement
 
         // Set draw style before tracing the polygon.
         painter.fillColor = fillColor;
-        painter.strokeColor = strokeColor;
-        painter.lineWidth = 2f;
 
         // Trace the face boundary from the first point through all remaining points.
         painter.BeginPath();
@@ -48,6 +45,5 @@ public class ChestFaceElement : VisualElement
         // Close, fill, then outline the polygon.
         painter.ClosePath();
         painter.Fill();
-        painter.Stroke();
     }
 }

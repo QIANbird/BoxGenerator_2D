@@ -17,6 +17,8 @@ public class ChestRenderer2D : MonoBehaviour
     [Header("Render Settings")]
     // Moves projected points into a visible area of the canvas.
     [SerializeField] private Vector2 canvasOffset = new Vector2(500f, 350f);
+    [SerializeField] private Color outlineColor = Color.black;
+    [SerializeField] private float outlineWidth = 2f;
 
     [Header("Debug")]
     // Logs face names and render order before drawing.
@@ -50,65 +52,34 @@ public class ChestRenderer2D : MonoBehaviour
         // Remove the previous chest before drawing the new one.
         canvasRoot.Clear();
 
-        // Draw lower renderOrder faces first so later faces appear on top.
+        DrawFilledFaces(geometryData);
+        DrawOutlineEdges(geometryData);
+    }
+
+    private void DrawFilledFaces(ChestGeometryData geometryData)
+    {
         List<ChestFaceData> sortedFaces = geometryData.faces
             .OrderBy(face => face.renderOrder)
             .ToList();
-
-        if (logFaceData)
-        {
-            LogFaceData(sortedFaces);
-        }
 
         foreach (ChestFaceData face in sortedFaces)
         {
             DrawFace(face);
         }
     }
-
-    private void LogFaceData(List<ChestFaceData> sortedFaces)
+    private void DrawOutlineEdges(ChestGeometryData geometryData)
     {
-        Debug.Log($"ChestFaceData count: {sortedFaces.Count}");
+        List<ChestEdgeData> sortedEdges = geometryData.outlineEdges
+            .OrderBy(edge => edge.renderOrder)
+            .ToList();
 
-        for (int i = 0; i < sortedFaces.Count; i++)
+        foreach (ChestEdgeData edge in sortedEdges)
         {
-            ChestFaceData face = sortedFaces[i];
-
-            Debug.Log(FormatFaceDebugMessage(face, i));
+            DrawEdge(edge);
         }
     }
 
-    private string FormatFaceDebugMessage(ChestFaceData face, int drawIndex)
-    {
-        StringBuilder message = new StringBuilder();
-        int vertexCount = face.vertices3D != null ? face.vertices3D.Count : 0;
-
-        message.AppendLine(
-            $"[{drawIndex}] name: {face.faceName}, renderOrder: {face.renderOrder}, vertices: {vertexCount}"
-        );
-
-        for (int i = 0; i < vertexCount; i++)
-        {
-            string vertexName = GetVertexDebugName(face, i);
-            Vector3 vertex = face.vertices3D[i];
-
-            message.AppendLine(
-                $"    {i}: {vertexName} = ({vertex.x:F1}, {vertex.y:F1}, {vertex.z:F1})"
-            );
-        }
-
-        return message.ToString();
-    }
-
-    private string GetVertexDebugName(ChestFaceData face, int vertexIndex)
-    {
-        if (face.vertexNames == null || vertexIndex >= face.vertexNames.Count)
-        {
-            return "Unnamed";
-        }
-
-        return face.vertexNames[vertexIndex];
-    }
+  
 
     private void DrawFace(ChestFaceData face)
     {
@@ -122,21 +93,41 @@ public class ChestRenderer2D : MonoBehaviour
         }
 
         Color fillColor = GetFaceFillColor(face.faceName);
-        Color strokeColor = Color.black;
 
         // Create the UI element that draws the polygon face.
-        ChestFaceElement faceElement = new ChestFaceElement(vertices2D, fillColor, strokeColor);
-
-        // Stretch the custom drawing element over the whole canvas.
-        faceElement.style.position = Position.Absolute;
-        faceElement.style.left = 0;
-        faceElement.style.top = 0;
-        faceElement.style.width = Length.Percent(100);
-        faceElement.style.height = Length.Percent(100);
+        ChestFaceElement faceElement = new ChestFaceElement(vertices2D, fillColor);
 
         canvasRoot.Add(faceElement);
     }
 
+    /// 绘制单条轮廓线：只 Stroke，不 Fill。
+    private void DrawEdge(ChestEdgeData edge)
+    {
+        List<Vector2> points2D = new List<Vector2>();
+
+        foreach (Vector3 point3D in edge.points3D)
+        {
+            Vector2 point2D = IsoProjector.ProjectWithOffset(point3D, canvasOffset);
+            points2D.Add(point2D);
+        }
+
+        ChestEdgeElement edgeElement = new ChestEdgeElement(points2D, outlineColor, outlineWidth);
+        SetupFullCanvasElement(edgeElement);
+
+        canvasRoot.Add(edgeElement);
+    }
+
+    /// 让绘制元素覆盖整个画布区域，实际图形位置由顶点坐标决定。
+    private void SetupFullCanvasElement(VisualElement element)
+    {
+        element.style.position = Position.Absolute;
+        element.style.left = 0;
+        element.style.top = 0;
+        element.style.width = Length.Percent(100);
+        element.style.height = Length.Percent(100);
+    }
+
+    
     private Color GetFaceFillColor(string faceName)
     {
         // Slightly different colors make each visible side easier to read.
@@ -160,7 +151,8 @@ public class ChestRenderer2D : MonoBehaviour
                 return Hex("#83c5be");//薄荷色
             case "Lid_right_side":
                 return Hex("#006d77");//深薄荷色
-
+            case "Locker":
+                return Hex("#ffe6a7");//金色
             default:
                 return new Color(0.65f, 0.40f, 0.22f, 1f);
         }

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class ChestLatentParams
+public class ChestLatentParams : MonoBehaviour
 {
     [Header("Body")]
     // Main chest body dimensions.
