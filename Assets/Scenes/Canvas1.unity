@@ -229,6 +229,7 @@ GameObject:
   - component: {fileID: 1210567949}
   - component: {fileID: 1210567952}
   - component: {fileID: 1210567951}
+  - component: {fileID: 1210567953}
   m_Layer: 5
   m_Name: MainUI
   m_TagString: Untagged
@@ -422,8 +423,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 1210567942}
   canvasElementName: DrawingArea
-  canvasOffset: {x: 300, y: 200}
+  canvasOffset: {x: 300, y: 250}
+  outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 2
   logFaceData: 1
+--- !u!114 &1210567953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210567941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c89ea6eb99647c4589bcfcbad0fb8c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  width: 300
+  height: 100
+  depth: 140
+  taper: 30
+  lidHeight: 50
+  lidSegments: 20
+  lockerWidth: 100
+  lockerHeight: 80
 --- !u!1 &1395582283
 GameObject:
   m_ObjectHideFlags: 0
