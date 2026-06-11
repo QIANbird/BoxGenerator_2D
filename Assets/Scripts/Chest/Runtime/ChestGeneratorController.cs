@@ -16,6 +16,9 @@ public class ChestGeneratorController : MonoBehaviour
     [Header("Renderer")]
     [SerializeField] private ChestRenderer2D chestRenderer;
 
+    [Header("Parameters")]
+    [SerializeField] private ChestParameterState parameterState;
+
     private Button generateButton;
     private ChestGeometryModel geometryModel;
     private ChestLatentParams currentParams;
@@ -35,6 +38,11 @@ public class ChestGeneratorController : MonoBehaviour
         if (chestRenderer == null)
         {
             chestRenderer = GetComponent<ChestRenderer2D>();
+        }
+
+        if (parameterState == null)
+        {
+            parameterState = GetComponent<ChestParameterState>();
         }
     }
 
@@ -64,7 +72,7 @@ public class ChestGeneratorController : MonoBehaviour
     // 点击按钮后生成默认宝箱
     private void OnGenerateClicked()
     {
-        currentParams = new ChestLatentParams();
+        currentParams = CreateInitialParams();
 
         ChestGeometryData geometryData = geometryModel.Build(currentParams);
 
@@ -76,7 +84,7 @@ public class ChestGeneratorController : MonoBehaviour
     {
         if (currentParams == null)
         {
-            currentParams = new ChestLatentParams();
+            currentParams = CreateInitialParams();
         }
 
         ChestGeometryData geometryData = geometryModel.Build(currentParams);
@@ -89,9 +97,16 @@ public class ChestGeneratorController : MonoBehaviour
     {
         if (currentParams == null)
         {
-            currentParams = new ChestLatentParams();
+            currentParams = CreateInitialParams();
         }
 
         return currentParams;
+    }
+
+    private ChestLatentParams CreateInitialParams()
+    {
+        return parameterState != null
+            ? parameterState.CreateParamsCopy()
+            : new ChestLatentParams();
     }
 }

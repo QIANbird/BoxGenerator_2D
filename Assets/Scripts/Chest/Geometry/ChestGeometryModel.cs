@@ -79,7 +79,7 @@ public class ChestGeometryModel
         // 锁扣中心位置：x 居中，y 在箱体正面上半部分，z 稍微朝前
         float centerX = 0f;
         float centerY = 0f;
-        float centerZ = 0f;
+        float centerZ = p.lockerAnchorDepth;
 
         data.AddPoint("LC_TL", new Vector3(centerX - lw / 2f, centerY + lh / 2f, centerZ));
         data.AddPoint("LC_TR", new Vector3(centerX + lw / 2f, centerY + lh / 2f, centerZ));

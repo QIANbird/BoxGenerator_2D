@@ -436,17 +436,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 1210567941}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c89ea6eb99647c4589bcfcbad0fb8c9, type: 3}
+  m_Script: {fileID: 11500000, guid: 2f3d765eed604e2c8ed2e8ea767da94a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 300
-  height: 100
-  depth: 140
-  taper: 30
-  lidHeight: 50
-  lidSegments: 20
-  lockerWidth: 100
-  lockerHeight: 80
+  initialParams:
+    width: 300
+    height: 100
+    depth: 140
+    bodyThickness: 18
+    taper: 30
+    lidHeight: 50
+    lidSegments: 20
+    lidThickness: 18
+    lockerWidth: 100
+    lockerHeight: 80
+    lockerDepth: 10
+    lockerAnchorDepth: 0
 --- !u!1 &1395582283
 GameObject:
   m_ObjectHideFlags: 0
