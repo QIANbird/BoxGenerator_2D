@@ -1,59 +1,34 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Chest3DPreviewUIController 是 UI Toolkit 和 3D 预览之间的桥接层。
-//
-// UI Toolkit 的 VisualElement 不能直接承载一个 3D 场景对象，
-// 所以这里采用“摄像机 -> RenderTexture -> DrawingArea 背景图”的方案：
-// 1. 用户点击 UXML 里的生成按钮。
-// 2. 脚本调用 Chest3DGenerator.Generate() 生成宝箱模型。
-// 3. previewCamera 把模型渲染到 RenderTexture。
-// 4. DrawingArea 使用这个 RenderTexture 作为 backgroundImage。
-//
-// 这个脚本只负责 UI 事件和预览贴图管理，不负责生成 Mesh，也不负责 AI 请求。
+// 连接 UI Toolkit 和 3D 预览的桥接脚本。
+// 流程：点击 BOX -> Chest3DGenerator 生成模型 -> 预览相机渲染到 RenderTexture -> DrawingArea 显示贴图。
 [RequireComponent(typeof(UIDocument))]
 public class Chest3DPreviewUIController : MonoBehaviour
 {
     [Header("UI References")]
-    // 承载 UILayout.uxml 的 UIDocument。
     [SerializeField] private UIDocument uiDocument;
-
-    // UXML 中触发 3D 宝箱生成的按钮名称。
-    // 当前复用旧按钮 Btn_rectangle。
     [SerializeField] private string generateButtonName = "Btn_rectangle";
-
-    // UXML 中显示 3D 预览画面的区域名称。
+    [SerializeField] private string secondaryGenerateButtonName = "Btn_basicChestType";
     [SerializeField] private string drawingAreaName = "DrawingArea";
 
     [Header("3D Preview")]
-    // 负责实际生成 Body / Lid / Locker 的运行时生成器。
     [SerializeField] private Chest3DGenerator chestGenerator;
-
-    // 专门用于渲染到 RenderTexture 的预览相机。
-    // 注意不要使用负责 Game 视图 Display 的主相机作为 targetTexture 相机。
     [SerializeField] private Camera previewCamera;
-
-    // DrawingArea 尺寸还没完成布局时使用的备用贴图尺寸。
     [SerializeField] private int fallbackTextureWidth = 1024;
     [SerializeField] private int fallbackTextureHeight = 768;
-
-    // 防止窗口太小时创建过小的 RenderTexture。
     [SerializeField] private int minTextureSize = 256;
-
-    // RenderTexture 抗锯齿等级。
     [SerializeField] private int antiAliasing = 4;
 
     [Header("Runtime UI Styling")]
-    // 当前 UILayout 里 Btn_rectangle 的宽高为 0%，所以运行时把它修成可点击按钮。
-    [SerializeField] private bool styleGenerateButton = true;
+    [SerializeField] private bool styleGenerateButton = false;
     [SerializeField] private string generateButtonText = "Generate";
 
-    // 运行时缓存的 UI 元素引用。
     private Button generateButton;
+    private Button secondaryGenerateButton;
     private VisualElement drawingArea;
-
-    // 用来承接 3D 相机画面的运行时贴图。
     private RenderTexture previewTexture;
+    private bool hasRenderedPreview;
 
     private void OnEnable()
     {
@@ -71,7 +46,6 @@ public class Chest3DPreviewUIController : MonoBehaviour
         ReleasePreviewTexture();
     }
 
-    // 自动补齐可推断的引用，减少场景手动拖拽成本。
     private void ResolveReferences()
     {
         if (uiDocument == null)
@@ -90,7 +64,6 @@ public class Chest3DPreviewUIController : MonoBehaviour
         }
     }
 
-    // 从 UIDocument 中查找按钮和 DrawingArea，并注册事件。
     private void BindUI()
     {
         if (uiDocument == null)
@@ -101,6 +74,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
 
         VisualElement root = uiDocument.rootVisualElement;
         generateButton = root.Q<Button>(generateButtonName);
+        secondaryGenerateButton = root.Q<Button>(secondaryGenerateButtonName);
         drawingArea = root.Q<VisualElement>(drawingAreaName);
 
         if (generateButton == null)
@@ -116,18 +90,28 @@ public class Chest3DPreviewUIController : MonoBehaviour
         }
 
         ConfigureDrawingArea();
-        ConfigureGenerateButton();
+        ConfigureGenerateButton(generateButton);
 
-        generateButton.clicked += OnGenerateClicked;
+        generateButton.clicked += GenerateAndRenderPreview;
+
+        if (secondaryGenerateButton != null)
+        {
+            secondaryGenerateButton.clicked += GenerateAndRenderPreview;
+        }
+
         drawingArea.RegisterCallback<GeometryChangedEvent>(OnDrawingAreaGeometryChanged);
     }
 
-    // 移除事件绑定，并断开相机和 RenderTexture 的连接。
     private void UnbindUI()
     {
         if (generateButton != null)
         {
-            generateButton.clicked -= OnGenerateClicked;
+            generateButton.clicked -= GenerateAndRenderPreview;
+        }
+
+        if (secondaryGenerateButton != null)
+        {
+            secondaryGenerateButton.clicked -= GenerateAndRenderPreview;
         }
 
         if (drawingArea != null)
@@ -141,8 +125,6 @@ public class Chest3DPreviewUIController : MonoBehaviour
         }
     }
 
-    // 配置 DrawingArea 的预览显示方式。
-    // backgroundSize 使用 Contain，保证宝箱画面完整显示在 UI 区域内。
     private void ConfigureDrawingArea()
     {
         drawingArea.style.overflow = Overflow.Hidden;
@@ -152,25 +134,22 @@ public class Chest3DPreviewUIController : MonoBehaviour
         drawingArea.style.backgroundPositionY = new BackgroundPosition(BackgroundPositionKeyword.Center);
     }
 
-    // 只在运行时修正旧按钮的可见性，不直接改 UXML，避免影响旧原型场景。
-    private void ConfigureGenerateButton()
+    private void ConfigureGenerateButton(Button button)
     {
-        if (!styleGenerateButton)
+        if (!styleGenerateButton || button == null)
         {
             return;
         }
 
-        generateButton.text = generateButtonText;
-        generateButton.style.width = 82f;
-        generateButton.style.height = 28f;
-        generateButton.style.marginLeft = 8f;
-        generateButton.style.marginTop = 8f;
-        generateButton.style.fontSize = 11f;
+        button.text = generateButtonText;
+        button.style.width = 82f;
+        button.style.height = 28f;
+        button.style.marginLeft = 8f;
+        button.style.marginTop = 8f;
+        button.style.fontSize = 11f;
     }
 
-    // 用户点击 Generate 后的主流程：
-    // 先确保 RenderTexture 存在，再生成模型，最后强制预览相机渲染一帧。
-    private void OnGenerateClicked()
+    public void GenerateAndRenderPreview()
     {
         if (chestGenerator == null)
         {
@@ -187,25 +166,24 @@ public class Chest3DPreviewUIController : MonoBehaviour
         EnsurePreviewTexture();
         chestGenerator.Generate();
         previewCamera.Render();
+        hasRenderedPreview = true;
     }
 
-    // DrawingArea 尺寸变化时，同步更新 RenderTexture 尺寸。
-    // 如果还没有生成过预览贴图，则不主动创建，保持初始画布为空。
     private void OnDrawingAreaGeometryChanged(GeometryChangedEvent evt)
     {
-        if (evt.newRect.width <= 0f || evt.newRect.height <= 0f)
+        if (evt.newRect.width <= 0f || evt.newRect.height <= 0f || previewTexture == null)
         {
             return;
         }
 
-        if (previewTexture != null)
+        EnsurePreviewTexture();
+
+        if (hasRenderedPreview && previewCamera != null)
         {
-            EnsurePreviewTexture();
+            previewCamera.Render();
         }
     }
 
-    // 根据 DrawingArea 当前尺寸创建或复用 RenderTexture。
-    // 同时把 previewCamera.targetTexture 指向这张贴图。
     private void EnsurePreviewTexture()
     {
         if (drawingArea == null || previewCamera == null)
@@ -250,7 +228,6 @@ public class Chest3DPreviewUIController : MonoBehaviour
         ApplyTextureToDrawingArea();
     }
 
-    // 把 RenderTexture 设置成 DrawingArea 的背景图。
     private void ApplyTextureToDrawingArea()
     {
         if (drawingArea == null || previewTexture == null)
@@ -261,7 +238,6 @@ public class Chest3DPreviewUIController : MonoBehaviour
         drawingArea.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(previewTexture));
     }
 
-    // 释放运行时创建的 RenderTexture，避免反复进入 Play 模式或切场景时泄漏。
     private void ReleasePreviewTexture()
     {
         if (previewCamera != null && previewCamera.targetTexture == previewTexture)

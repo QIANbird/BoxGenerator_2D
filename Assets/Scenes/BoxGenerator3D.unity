@@ -621,7 +621,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PanelSettings: {fileID: 11400000, guid: d9196b16e441aff4baf42c07404a5e4e, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: cb8b5abed4a3e8748b28bf8fd30ba838, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: 0d80bbf475de7a04dab478d3d3ee53d2, type: 3}
   m_SortingOrder: 0
   m_WorldSpaceSizeMode: 1
   m_WorldSpaceWidth: 1920
@@ -640,6 +640,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 3202}
   generateButtonName: Btn_rectangle
+  secondaryGenerateButtonName: Btn_basicChestType
   drawingAreaName: DrawingArea
   chestGenerator: {fileID: 3102}
   previewCamera: {fileID: 4001}
@@ -647,7 +648,7 @@ MonoBehaviour:
   fallbackTextureHeight: 768
   minTextureSize: 256
   antiAliasing: 4
-  styleGenerateButton: 1
+  styleGenerateButton: 0
   generateButtonText: Generate
 --- !u!1 &3300
 GameObject:
