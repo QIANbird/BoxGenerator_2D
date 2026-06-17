@@ -585,6 +585,7 @@ GameObject:
   - component: {fileID: 3201}
   - component: {fileID: 3202}
   - component: {fileID: 3203}
+  - component: {fileID: 3204}
   m_Layer: 0
   m_Name: UIRoot
   m_TagString: Untagged
@@ -642,6 +643,10 @@ MonoBehaviour:
   generateButtonName: Btn_rectangle
   secondaryGenerateButtonName: Btn_basicChestType
   drawingAreaName: DrawingArea
+  editingModeButtonName: Btn_editingMode
+  textureModeButtonName: Btn_generate
+  controlPanelName: ControlPanel
+  texturePanelName: TexturePanel
   chestGenerator: {fileID: 3102}
   previewCamera: {fileID: 4001}
   fallbackTextureWidth: 1024
@@ -650,6 +655,23 @@ MonoBehaviour:
   antiAliasing: 4
   styleGenerateButton: 0
   generateButtonText: Generate
+--- !u!114 &3204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6b0f68a75024e519f60d05ba1d7b3a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 3202}
+  parameterState: {fileID: 3002}
+  previewController: {fileID: 3203}
+  widthSliderName: Param_width
+  widthFieldName: Param_width_Field
 --- !u!1 &3300
 GameObject:
   m_ObjectHideFlags: 0

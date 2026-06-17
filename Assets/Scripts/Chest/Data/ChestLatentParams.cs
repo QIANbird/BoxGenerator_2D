@@ -4,6 +4,16 @@ using UnityEngine;
 [Serializable]
 public class ChestLatentParams
 {
+    public const float MinPositiveSize = 1f;
+    public const float MinWidth = 10f;
+    public const float MaxWidth = 600f;
+    public const float MaxSize = 600f;
+    public const float MinLockerWidth = 5f;
+    public const int MinLidSegments = 4;
+    public const int MaxLidSegments = 64;
+
+    private const float GeometryClearance = 1f;
+
     [Header("Body")]
     // Main chest body dimensions.
     public float width = 300f;
@@ -70,25 +80,30 @@ public class ChestLatentParams
 
     public void ClampValues()
     {
-        // Prevent zero or negative sizes.
-        width = Mathf.Max(10f, width);
-        height = Mathf.Max(10f, height);
-        depth = Mathf.Max(10f, depth);
-        lidHeight = Mathf.Max(10f, lidHeight);
+        // Prevent zero/negative accessory sizes first because body dimensions depend on them.
+        lockerWidth = Mathf.Clamp(lockerWidth, MinLockerWidth, MaxWidth);
+        lockerHeight = Mathf.Clamp(lockerHeight, MinPositiveSize, MaxSize);
+        lockerDepth = Mathf.Clamp(lockerDepth, MinPositiveSize, MaxSize);
+
+        // Body must be able to contain the lock plate visually.
+        width = Mathf.Clamp(width, Mathf.Max(MinWidth, lockerWidth), MaxWidth);
+        height = Mathf.Clamp(height, Mathf.Max(MinPositiveSize, lockerHeight * 0.5f), MaxSize);
+        depth = Mathf.Clamp(depth, MinPositiveSize, MaxSize);
+        lidHeight = Mathf.Clamp(lidHeight, MinPositiveSize, MaxSize);
 
         // Keep shell thickness usable for future inner/outer mesh generation.
-        float maxBodyThickness = Mathf.Min(width, height, depth) * 0.45f;
-        float maxLidThickness = Mathf.Min(width, lidHeight, depth) * 0.45f;
-        bodyThickness = Mathf.Clamp(bodyThickness, 1f, maxBodyThickness);
-        lidThickness = Mathf.Clamp(lidThickness, 1f, maxLidThickness);
+        float maxBodyThickness = Mathf.Max(MinPositiveSize, Mathf.Min(width, height, depth) * 0.45f);
+        float maxLidThickness = Mathf.Max(MinPositiveSize, Mathf.Min(width, lidHeight, depth) * 0.45f);
+        bodyThickness = Mathf.Clamp(bodyThickness, MinPositiveSize, maxBodyThickness);
+        lidThickness = Mathf.Clamp(lidThickness, MinPositiveSize, maxLidThickness);
 
         // Keep taper and lid detail within usable geometry limits.
-        taper = Mathf.Clamp(taper, 0f, Mathf.Min(width * 0.45f, depth * 0.45f));
-        lidSegments = Mathf.Clamp(lidSegments, 3, 64);
+        float maxTaperByWidth = Mathf.Max(0f, width - GeometryClearance);
+        float maxTaperByDepth = Mathf.Max(0f, depth * 0.5f - GeometryClearance);
+        taper = Mathf.Clamp(taper, 0f, Mathf.Min(maxTaperByWidth, maxTaperByDepth));
+        lidSegments = Mathf.Clamp(lidSegments, MinLidSegments, MaxLidSegments);
 
         // Keep the lock visible and valid.
-        lockerWidth = Mathf.Max(5f, lockerWidth);
-        lockerHeight = Mathf.Max(5f, lockerHeight);
         lockerDepth = Mathf.Clamp(lockerDepth, 1f, Mathf.Min(width, depth) * 0.2f);
 
         // Current coordinate convention uses positive z as box depth.

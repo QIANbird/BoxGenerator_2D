@@ -1,14 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ui:UXML
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:ui="UnityEngine.UIElements"
-    xmlns:uie="UnityEditor.UIElements"
-    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
->
-    <ui:VisualElement name="UIDemoRoot" style="flex-grow: 1; flex-direction: row; background-color: rgb(241, 241, 241); color: rgb(42, 42, 42);">
-        <ui:VisualElement name="MainPageColumn" style="flex-grow: 1; min-width: 780px; flex-direction: column; margin-right: 48px;">
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="UIDemoRoot" style="flex-grow: 1; background-color: rgb(241, 241, 241); color: rgb(42, 42, 42);">
+        <ui:VisualElement name="MainPageColumn" style="flex-grow: 1; min-width: 780px; flex-direction: column;">
             <ui:Label name="MainPageTitle" text="MainPage" style="height: 30px; padding-left: 2px; padding-top: 9px; font-size: 12px; color: rgb(178, 178, 178);" />
-
             <ui:VisualElement name="MainPageSurface" style="flex-grow: 1; flex-direction: row; background-color: rgb(255, 255, 255);">
                 <ui:VisualElement name="TypeToolbar" style="width: 112px; min-width: 112px; flex-direction: column; align-items: center; padding-top: 84px; background-color: rgb(255, 255, 255);">
                     <ui:Button name="Btn_bodyType" text="[ ]  Body" tooltip="Body component type" style="width: 82px; height: 44px; margin-bottom: 22px; justify-content: center; font-size: 12px; color: rgb(26, 26, 26); background-color: rgb(245, 245, 245); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
@@ -17,82 +10,126 @@
                     <ui:Button name="Btn_decoType" text="[ ]  Deco" tooltip="Decoration component type" style="width: 82px; height: 44px; margin-bottom: 22px; justify-content: center; font-size: 12px; color: rgb(26, 26, 26); background-color: rgb(245, 245, 245); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
                     <ui:Button name="Btn_rectangle" text="[ ]  BOX" tooltip="Generate or select the base box" style="width: 82px; height: 44px; justify-content: center; font-size: 12px; color: rgb(26, 26, 26); background-color: rgb(245, 245, 245); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
                 </ui:VisualElement>
-
                 <ui:VisualElement name="EditorWorkspace" style="flex-grow: 1; min-width: 360px; flex-direction: column; background-color: rgb(253, 253, 253);">
                     <ui:VisualElement name="DrawingArea" style="flex-grow: 1; position: relative; background-color: rgb(252, 252, 252); -unity-background-scale-mode: scale-to-fit;">
                         <ui:VisualElement name="StageFooter" style="position: absolute; left: 0; right: 0; bottom: 40px; height: 28px; flex-direction: row; justify-content: center; align-items: center;">
-                            <ui:Button name="Btn_editingMode" text="Editing" tooltip="Editing mode" style="width: 114px; height: 26px; margin-right: 10px; font-size: 11px; color: rgb(58, 58, 58); background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(65, 65, 65); border-right-color: rgb(65, 65, 65); border-top-color: rgb(65, 65, 65); border-bottom-color: rgb(65, 65, 65); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
-                            <ui:Button name="Btn_generate" text="Preview the Texture" tooltip="Preview generated texture" style="width: 116px; height: 26px; font-size: 11px; color: rgb(255, 255, 255); background-color: rgb(32, 32, 32); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
+                            <ui:Button name="Btn_editingMode" text="Editing" tooltip="Show editing panel" style="width: 114px; height: 26px; margin-right: 10px; font-size: 11px; color: rgb(58, 58, 58); background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(65, 65, 65); border-right-color: rgb(65, 65, 65); border-top-color: rgb(65, 65, 65); border-bottom-color: rgb(65, 65, 65); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
+                            <ui:Button name="Btn_generate" text="Preview the Texture" tooltip="Show texture panel" style="width: 116px; height: 26px; font-size: 11px; color: rgb(255, 255, 255); background-color: rgb(32, 32, 32); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-
-                <ui:VisualElement name="ControlPanel" style="width: 260px; min-width: 260px; flex-direction: column; background-color: rgb(255, 255, 255); border-left-width: 0; border-left-color: rgb(255, 255, 255);">
-                    <ui:VisualElement name="BasicTypeHeader" style="height: 26px; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232);">
-                        <ui:Label text="Basic Type" style="font-size: 11px; color: rgb(112, 112, 112);" />
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="BasicTypeLibrary" style="height: 151px; padding-left: 18px; padding-top: 15px; background-color: rgb(255, 255, 255);">
-                        <ui:Button name="Btn_basicChestType" text="BOX" tooltip="Low-poly chest base type" style="width: 56px; height: 56px; font-size: 13px; -unity-font-style: bold; color: rgb(24, 24, 24); background-color: rgb(218, 218, 218); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-right-radius: 7px; border-bottom-left-radius: 7px;" />
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="ParamsDividerTop" style="height: 1px; background-color: rgb(176, 176, 176);" />
-                    <ui:VisualElement name="ParamsHeader" style="height: 33px; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232);">
-                        <ui:Label text="Params" style="font-size: 11px; color: rgb(112, 112, 112);" />
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="ParameterPanel" style="height: 193px; flex-direction: column; padding-top: 6px; padding-left: 20px; padding-right: 26px; background-color: rgb(255, 255, 255);">
-                        <ui:VisualElement name="Row_width" style="height: 58px; flex-direction: column;">
-                            <ui:Label text="Body_width" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
-                            <ui:VisualElement name="BodyWidthControlLine" style="height: 30px; flex-direction: row; align-items: center;">
-                                <ui:TextField name="Param_width_Field" value="Value" style="width: 78px; height: 26px; margin-right: 10px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;" />
-                                <ui:Slider name="Param_width" low-value="100" high-value="600" value="260" style="flex-grow: 1;" />
-                            </ui:VisualElement>
+                <ui:VisualElement name="InspectorSection" style="width: 260px; min-width: 260px; flex-direction: column; background-color: rgb(255, 255, 255); overflow: hidden;">
+                    <ui:VisualElement name="ControlPanel" style="flex-grow: 1; width: 100%; min-height: 0; flex-direction: column; background-color: rgb(255, 255, 255); overflow: hidden;">
+                        <ui:VisualElement name="BasicTypeHeader" style="height: 26px; flex-shrink: 0; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232);">
+                            <ui:Label text="Basic Type" style="font-size: 11px; color: rgb(112, 112, 112);" />
                         </ui:VisualElement>
-
-                        <ui:VisualElement name="HiddenFutureParams" style="display: none;">
-                            <ui:Slider name="Param_height" low-value="80" high-value="360" value="160" />
-                            <ui:FloatField name="Param_height_Field" value="160" />
-                            <ui:Slider name="Param_depth" low-value="80" high-value="360" value="160" />
-                            <ui:FloatField name="Param_depth_Field" value="160" />
-                            <ui:Slider name="Param_taper" low-value="0" high-value="160" value="36" />
-                            <ui:FloatField name="Param_taper_Field" value="36" />
-                            <ui:Slider name="Param_bodyThickness" low-value="4" high-value="80" value="16" />
-                            <ui:FloatField name="Param_bodyThickness_Field" value="16" />
-                            <ui:Slider name="Param_lidHeight" low-value="20" high-value="220" value="90" />
-                            <ui:FloatField name="Param_lidHeight_Field" value="90" />
-                            <ui:SliderInt name="Param_lidSegments" low-value="3" high-value="32" value="10" />
-                            <ui:IntegerField name="Param_lidSegments_Field" value="10" />
-                            <ui:Slider name="Param_lidThickness" low-value="4" high-value="80" value="16" />
-                            <ui:FloatField name="Param_lidThickness_Field" value="16" />
-                            <ui:Slider name="Param_lockerWidth" low-value="10" high-value="180" value="42" />
-                            <ui:FloatField name="Param_lockerWidth_Field" value="42" />
-                            <ui:Slider name="Param_lockerHeight" low-value="10" high-value="180" value="54" />
-                            <ui:FloatField name="Param_lockerHeight_Field" value="54" />
-                            <ui:Slider name="Param_lockerDepth" low-value="2" high-value="40" value="10" />
-                            <ui:FloatField name="Param_lockerDepth_Field" value="10" />
-                            <ui:Slider name="Param_lockerAnchorDepth" low-value="-40" high-value="40" value="0" />
-                            <ui:FloatField name="Param_lockerAnchorDepth_Field" value="0" />
+                        <ui:VisualElement name="BasicTypeLibrary" style="height: 151px; flex-shrink: 0; padding-left: 18px; padding-top: 15px; background-color: rgb(255, 255, 255);">
+                            <ui:Button name="Btn_basicChestType" text="BOX" tooltip="Low-poly chest base type" style="width: 56px; height: 56px; font-size: 13px; -unity-font-style: bold; color: rgb(24, 24, 24); background-color: rgb(218, 218, 218); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-right-radius: 7px; border-bottom-left-radius: 7px;" />
                         </ui:VisualElement>
+                        <ui:VisualElement name="ParamsDividerTop" style="height: 1px; flex-shrink: 0; background-color: rgb(176, 176, 176);" />
+                        <ui:VisualElement name="ParamsHeader" style="height: 33px; flex-shrink: 0; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232);">
+                            <ui:Label text="Params" style="font-size: 11px; color: rgb(112, 112, 112);" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="ParameterPanel" style="flex-grow: 1; flex-shrink: 1; min-height: 0; flex-direction: column; background-color: rgb(255, 255, 255);">
+                            <ui:ScrollView name="ParameterScroll" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" style="flex-grow: 1; flex-shrink: 1; min-height: 0; padding-top: 6px; padding-left: 20px; padding-right: 16px; padding-bottom: 8px;">
+                                <ui:VisualElement name="Row_width" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Body_width" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement name="BodyWidthControlLine" style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_width_Field" value="300" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_width" low-value="10" high-value="600" value="300" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_height" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Body_height" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_height_Field" value="180" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_height" low-value="10" high-value="600" value="180" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_depth" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Body_depth" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_depth_Field" value="140" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_depth" low-value="10" high-value="600" value="140" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_taper" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Body_taper" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_taper_Field" value="40" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_taper" low-value="0" high-value="260" value="40" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lidHeight" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Lid_height" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lidHeight_Field" value="90" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_lidHeight" low-value="10" high-value="360" value="90" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lidSegments" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Lid_segments" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lidSegments_Field" value="12" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:SliderInt name="Param_lidSegments" low-value="4" high-value="64" value="12" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lockerWidth" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Locker_width" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lockerWidth_Field" value="50" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_lockerWidth" low-value="5" high-value="600" value="50" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lockerHeight" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Locker_height" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lockerHeight_Field" value="70" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_lockerHeight" low-value="5" high-value="300" value="70" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lockerDepth" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Locker_depth" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lockerDepth_Field" value="10" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_lockerDepth" low-value="1" high-value="120" value="10" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_bodyThickness" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Body_thickness" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_bodyThickness_Field" value="18" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_bodyThickness" low-value="1" high-value="120" value="18" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lidThickness" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Lid_thickness" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lidThickness_Field" value="18" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_lidThickness" low-value="1" high-value="120" value="18" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="Row_lockerAnchorDepth" style="height: 58px; flex-direction: column;">
+                                    <ui:Label text="Locker_anchor_depth" style="height: 20px; margin-left: 0; font-size: 12px; color: rgb(51, 51, 51);" />
+                                    <ui:VisualElement style="height: 30px; flex-direction: row; align-items: center;">
+                                        <ui:TextField name="Param_lockerAnchorDepth_Field" value="0" style="width: 72px; height: 26px; margin-right: 2px; font-size: 11px; background-color: rgb(255, 255, 255); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgb(223, 223, 223); border-right-color: rgb(223, 223, 223); border-top-color: rgb(223, 223, 223); border-bottom-color: rgb(223, 223, 223); border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; margin-top: 0; margin-bottom: 0; margin-left: 3px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+                                        <ui:Slider name="Param_lockerAnchorDepth" low-value="-18" high-value="18" value="0" style="flex-grow: 1;" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                            </ui:ScrollView>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="ParamsDividerBottom" style="height: 1px; flex-shrink: 0; background-color: rgb(176, 176, 176);" />
+                        <ui:VisualElement name="ControlPanelEmpty" style="display: none; background-color: rgb(255, 255, 255);" />
                     </ui:VisualElement>
-
-                    <ui:VisualElement name="ParamsDividerBottom" style="height: 1px; background-color: rgb(176, 176, 176);" />
-                    <ui:VisualElement name="ControlPanelEmpty" style="flex-grow: 1; background-color: rgb(255, 255, 255);" />
+                    <ui:VisualElement name="TexturePanel" style="display: none; flex-grow: 1; width: 100%; flex-direction: column; background-color: rgb(255, 255, 255);">
+                        <ui:VisualElement name="TextureHeader" style="height: 26px; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232);">
+                            <ui:Label text="Texture" style="font-size: 11px; color: rgb(112, 112, 112);" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="ResultPreview" style="height: 151px; background-color: rgb(255, 255, 255); -unity-background-scale-mode: scale-to-fit;" />
+                        <ui:VisualElement name="TextureDivider" style="height: 1px; background-color: rgb(176, 176, 176);" />
+                        <ui:VisualElement name="TextureEmptyArea" style="flex-grow: 1; background-color: rgb(255, 255, 255);" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
-            </ui:VisualElement>
-        </ui:VisualElement>
-
-        <ui:VisualElement name="TextureColumn" style="width: 250px; min-width: 250px; flex-direction: column; margin-right: 10px;">
-            <ui:Label name="TextureColumnTitle" text="Texture" style="height: 30px; padding-left: 0; padding-top: 9px; font-size: 12px; color: rgb(178, 178, 178);" />
-            <ui:VisualElement name="TexturePanel" style="flex-grow: 1; flex-direction: column; background-color: rgb(255, 255, 255);">
-                <ui:VisualElement name="TextureHeader" style="height: 26px; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232);">
-                    <ui:Label text="Texture" style="font-size: 11px; color: rgb(112, 112, 112);" />
-                </ui:VisualElement>
-                <ui:VisualElement name="ResultPreview" style="height: 151px; background-color: rgb(255, 255, 255); -unity-background-scale-mode: scale-to-fit;" />
-                <ui:VisualElement name="TextureDivider" style="height: 1px; background-color: rgb(176, 176, 176);" />
-                <ui:VisualElement name="TextureEmptyArea" style="flex-grow: 1; background-color: rgb(255, 255, 255);" />
-                <ui:TextField name="PromptInput" style="display: none;" />
-                <ui:Label name="ErrorLabel" text="Please enter a material prompt." enabled="false" style="display: none; color: rgb(173, 38, 38);" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
