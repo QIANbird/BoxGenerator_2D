@@ -1,63 +1,85 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
-// Chest3DGenerator 是 3D 原型阶段的运行时装配器。
-// 它负责把参数数据转换成场景中的可见对象：
-// 1. 从 ChestParameterState 取得一份参数副本。
-// 2. 调用 ChestMeshFactory 生成 Body / Lid / Locker 的 Mesh。
-// 3. 为每个 Mesh 创建 GameObject、MeshFilter、MeshRenderer 和材质。
-// 4. 可选地调整预览摄像机，让生成结果自动进入画面。
+public enum ChestPreviewMode
+{
+    Edit,
+    TextureLine
+}
+
+// Runtime assembler for the 3D chest preview.
+// It builds two identical chest instances from the same ChestLatentParams:
+// - Edit instance: colored low-poly material, rendered by the edit camera.
+// - TextureLine instance: black/white icon material, rendered by the texture camera.
 //
-// 这个脚本不直接计算顶点，也不保存长期模型资产。
-// 顶点几何由 ChestMeshFactory 负责；它这里只做“装配”和“显示”。
+// The two cameras are kept in the same position, rotation, projection, and orthographic size
+// so switching Editing / Preview the Texture only changes rendering style, not composition.
 public class Chest3DGenerator : MonoBehaviour
 {
     [Header("References")]
-    // 参数来源。通常挂在 BoxGenerator3DRoot 上。
     [SerializeField] private ChestParameterState parameterState;
-
-    // 生成出的 GeneratedChest 会挂在这个节点下面。
-    // 如果不手动指定，就默认挂在当前 GameObject 下。
     [SerializeField] private Transform targetRoot;
 
-    // 用于预览生成结果的摄像机。
-    // 如果不手动指定，就尝试使用 Camera.main。
-    [SerializeField] private Camera previewCamera;
+    [FormerlySerializedAs("previewCamera")]
+    [SerializeField] private Camera editPreviewCamera;
+
+    [SerializeField] private Camera texturePreviewCamera;
 
     [Header("Generation")]
-    // 是否在 Start 时自动生成一次，方便打开 BoxGenerator3D 场景后直接看到模型。
     [SerializeField] private bool generateOnStart = true;
-
-    // 参数使用的是设计单位，例如 width = 300。
-    // unitScale 把设计单位缩放到 Unity 世界单位，默认 300 -> 3。
     [SerializeField] private float unitScale = 0.01f;
 
-    // 运行时生成根节点的名字。重新生成时会按这个名字查找并清理旧对象。
-    [SerializeField] private string generatedRootName = "GeneratedChest";
+    [FormerlySerializedAs("generatedRootName")]
+    [SerializeField] private string editGeneratedRootName = "GeneratedChest_Edit";
+
+    [SerializeField] private string textureGeneratedRootName = "GeneratedChest_Texture";
+
+    [Header("Preview Layers")]
+    [SerializeField] private string editLayerName = "ChestEditPreview";
+    [SerializeField] private string textureLayerName = "ChestTexturePreview";
 
     [Header("Preview Camera")]
-    // 生成后是否根据模型包围盒自动调整摄像机。
     [SerializeField] private bool fitCameraOnGenerate = true;
-
-    // 摄像机相对模型中心的观察方向。当前是一个偏 3/4 视角的方向。
     [SerializeField] private Vector3 cameraDirection = new Vector3(4f, 3f, -6f);
-
-    // 摄像机正交尺寸的留白倍率，值越大模型在画面里越小。
     [SerializeField] private float cameraPadding = 1.25f;
 
-    [Header("Materials")]
-    // 可以在 Inspector 中指定材质；若为空，则运行时创建简单预览材质。
+    [Header("Edit Materials")]
     [SerializeField] private Material bodyMaterial;
     [SerializeField] private Material lidMaterial;
     [SerializeField] private Material lockerMaterial;
-
-    // 运行时默认材质颜色，主要用于低模原型阶段区分部件。
     [SerializeField] private Color bodyColor = new Color(0.72f, 0.52f, 0.36f, 1f);
     [SerializeField] private Color lidColor = new Color(0.50f, 0.68f, 0.45f, 1f);
     [SerializeField] private Color lockerColor = new Color(0.95f, 0.74f, 0.32f, 1f);
 
-    // 当前生成出的根节点缓存。重新生成和计算 bounds 时会用到。
-    private Transform generatedRoot;
+    [Header("Texture Line Materials")]
+    [SerializeField] private Material textureBodyMaterial;
+    [SerializeField] private Material textureLidMaterial;
+    [SerializeField] private Material textureLockerMaterial;
+    [SerializeField] private Color textureBodyColor = new Color(0.92f, 0.92f, 0.90f, 1f);
+    [SerializeField] private Color textureLidColor = new Color(0.74f, 0.74f, 0.72f, 1f);
+    [SerializeField] private Color textureLockerColor = new Color(0.16f, 0.16f, 0.16f, 1f);
+
+    private Transform editGeneratedRoot;
+    private Transform textureGeneratedRoot;
+
+    public Camera EditPreviewCamera
+    {
+        get
+        {
+            ResolveReferences();
+            return editPreviewCamera;
+        }
+    }
+
+    public Camera TexturePreviewCamera
+    {
+        get
+        {
+            ResolveReferences();
+            return texturePreviewCamera;
+        }
+    }
 
     private void Awake()
     {
@@ -68,54 +90,66 @@ public class Chest3DGenerator : MonoBehaviour
     {
         if (generateOnStart)
         {
-            Generate();
+            GenerateBoth();
         }
     }
 
-    // 手动或自动触发完整生成流程。
-    // 也可以在组件右键菜单中执行 "Generate Chest"。
     [ContextMenu("Generate Chest")]
     public void Generate()
     {
+        GenerateBoth();
+    }
+
+    public void Generate(ChestPreviewMode mode)
+    {
+        GenerateBoth();
+    }
+
+    public void GenerateBoth()
+    {
         ResolveReferences();
+        ConfigurePreviewCameras();
 
         ChestLatentParams parameters = parameterState != null
             ? parameterState.CreateParamsCopy()
             : new ChestLatentParams();
 
         ClearGeneratedRoot();
-        generatedRoot = CreateGeneratedRoot();
 
-        CreateMeshPart("Body", ChestMeshFactory.CreateBodyMesh(parameters), GetBodyMaterial());
-        CreateMeshPart("Lid", ChestMeshFactory.CreateLidMesh(parameters), GetLidMaterial());
-        CreateMeshPart("Locker", ChestMeshFactory.CreateLockerMesh(parameters), GetLockerMaterial());
+        int editLayer = ResolveLayer(editLayerName, 0);
+        int textureLayer = ResolveLayer(textureLayerName, 0);
 
-        if (fitCameraOnGenerate && previewCamera != null)
+        editGeneratedRoot = CreateGeneratedRoot(editGeneratedRootName, editLayer);
+        textureGeneratedRoot = CreateGeneratedRoot(textureGeneratedRootName, textureLayer);
+
+        CreateMeshPart(editGeneratedRoot, "Body", ChestMeshFactory.CreateBodyMesh(parameters), GetBodyMaterial(), editLayer);
+        CreateMeshPart(editGeneratedRoot, "Lid", ChestMeshFactory.CreateLidMesh(parameters), GetLidMaterial(), editLayer);
+        CreateMeshPart(editGeneratedRoot, "Locker", ChestMeshFactory.CreateLockerMesh(parameters), GetLockerMaterial(), editLayer);
+
+        CreateMeshPart(textureGeneratedRoot, "Body", ChestMeshFactory.CreateBodyMesh(parameters), GetTextureBodyMaterial(), textureLayer);
+        CreateMeshPart(textureGeneratedRoot, "Lid", ChestMeshFactory.CreateLidMesh(parameters), GetTextureLidMaterial(), textureLayer);
+        CreateMeshPart(textureGeneratedRoot, "Locker", ChestMeshFactory.CreateLockerMesh(parameters), GetTextureLockerMaterial(), textureLayer);
+
+        if (fitCameraOnGenerate && editPreviewCamera != null)
         {
-            FitCameraToGeneratedChest();
+            FitCameraToGeneratedChest(editPreviewCamera, editGeneratedRoot);
         }
+
+        SyncTextureCameraToEditCamera();
     }
 
-    // 清理上一次生成的模型，避免重复生成时堆叠对象和临时 Mesh。
-    // 也可以在组件右键菜单中执行 "Clear Generated Chest"。
     [ContextMenu("Clear Generated Chest")]
     public void ClearGeneratedRoot()
     {
-        Transform root = GetTargetRoot();
-        Transform existingRoot = root.Find(generatedRootName);
+        ClearGeneratedRootByName(editGeneratedRootName, ref editGeneratedRoot);
+        ClearGeneratedRootByName(textureGeneratedRootName, ref textureGeneratedRoot);
 
-        if (existingRoot == null)
+        if (editGeneratedRootName != "GeneratedChest" && textureGeneratedRootName != "GeneratedChest")
         {
-            generatedRoot = null;
-            return;
+            ClearGeneratedRootByName("GeneratedChest", ref editGeneratedRoot);
         }
-
-        ReleaseMeshes(existingRoot);
-        DestroyGeneratedObject(existingRoot.gameObject);
-        generatedRoot = null;
     }
 
-    // 自动补齐场景引用，让脚本直接挂到原型根节点上也能运行。
     private void ResolveReferences()
     {
         if (targetRoot == null)
@@ -128,9 +162,14 @@ public class Chest3DGenerator : MonoBehaviour
             parameterState = GetComponentInParent<ChestParameterState>();
         }
 
-        if (previewCamera == null)
+        if (editPreviewCamera == null)
         {
-            previewCamera = Camera.main;
+            editPreviewCamera = Camera.main;
+        }
+
+        if (texturePreviewCamera == null && editPreviewCamera != null)
+        {
+            texturePreviewCamera = CreateRuntimeTextureCamera(editPreviewCamera);
         }
     }
 
@@ -139,23 +178,63 @@ public class Chest3DGenerator : MonoBehaviour
         return targetRoot != null ? targetRoot : transform;
     }
 
-    // 创建一个可替换的生成根节点，所有部件都挂在它下面。
-    // 缩放放在根节点上，这样 MeshFactory 仍然可以使用原始设计单位。
-    private Transform CreateGeneratedRoot()
+    private Camera CreateRuntimeTextureCamera(Camera sourceCamera)
     {
-        Transform root = new GameObject(generatedRootName).transform;
+        GameObject cameraObject = new GameObject("ChestTexturePreviewCamera_Runtime");
+        cameraObject.transform.SetParent(transform, false);
+
+        Camera camera = cameraObject.AddComponent<Camera>();
+        camera.enabled = false;
+        CopyCameraPoseAndProjection(sourceCamera, camera);
+        return camera;
+    }
+
+    private void ConfigurePreviewCameras()
+    {
+        int editLayer = LayerMask.NameToLayer(editLayerName);
+        int textureLayer = LayerMask.NameToLayer(textureLayerName);
+
+        ConfigurePreviewCamera(editPreviewCamera, editLayer, new Color(0.78f, 0.80f, 0.82f, 1f));
+        ConfigurePreviewCamera(texturePreviewCamera, textureLayer, Color.white);
+    }
+
+    private static void ConfigurePreviewCamera(Camera camera, int layer, Color backgroundColor)
+    {
+        if (camera == null)
+        {
+            return;
+        }
+
+        camera.enabled = false;
+        camera.orthographic = true;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = backgroundColor;
+
+        if (layer >= 0)
+        {
+            camera.cullingMask = 1 << layer;
+        }
+    }
+
+    private Transform CreateGeneratedRoot(string rootName, int layer)
+    {
+        Transform root = new GameObject(rootName).transform;
         root.SetParent(GetTargetRoot(), false);
         root.localPosition = Vector3.zero;
         root.localRotation = Quaternion.identity;
         root.localScale = Vector3.one * Mathf.Max(0.0001f, unitScale);
+        root.gameObject.layer = layer;
         return root;
     }
 
-    // 为单个宝箱部件创建 GameObject，并绑定 Mesh 与材质。
-    private void CreateMeshPart(string partName, Mesh mesh, Material material)
+    private static void CreateMeshPart(Transform parent, string partName, Mesh mesh, Material material, int layer)
     {
-        GameObject part = new GameObject(partName);
-        part.transform.SetParent(generatedRoot, false);
+        GameObject part = new GameObject(partName)
+        {
+            layer = layer
+        };
+
+        part.transform.SetParent(parent, false);
 
         MeshFilter meshFilter = part.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = part.AddComponent<MeshRenderer>();
@@ -168,7 +247,7 @@ public class Chest3DGenerator : MonoBehaviour
     {
         if (bodyMaterial == null)
         {
-            bodyMaterial = CreateRuntimeMaterial("Chest Body Material", bodyColor);
+            bodyMaterial = CreateRuntimeMaterial("Chest Body Material", bodyColor, false);
         }
 
         return bodyMaterial;
@@ -178,7 +257,7 @@ public class Chest3DGenerator : MonoBehaviour
     {
         if (lidMaterial == null)
         {
-            lidMaterial = CreateRuntimeMaterial("Chest Lid Material", lidColor);
+            lidMaterial = CreateRuntimeMaterial("Chest Lid Material", lidColor, false);
         }
 
         return lidMaterial;
@@ -188,17 +267,45 @@ public class Chest3DGenerator : MonoBehaviour
     {
         if (lockerMaterial == null)
         {
-            lockerMaterial = CreateRuntimeMaterial("Chest Locker Material", lockerColor);
+            lockerMaterial = CreateRuntimeMaterial("Chest Locker Material", lockerColor, false);
         }
 
         return lockerMaterial;
     }
 
-    // 创建低模预览材质。
-    // URP 项目优先使用 URP/Lit；如果项目环境变化，则逐级降级到可用 shader。
-    private Material CreateRuntimeMaterial(string materialName, Color color)
+    private Material GetTextureBodyMaterial()
     {
-        Shader shader = FindPreviewShader();
+        if (textureBodyMaterial == null)
+        {
+            textureBodyMaterial = CreateRuntimeMaterial("Chest Texture Body Material", textureBodyColor, true);
+        }
+
+        return textureBodyMaterial;
+    }
+
+    private Material GetTextureLidMaterial()
+    {
+        if (textureLidMaterial == null)
+        {
+            textureLidMaterial = CreateRuntimeMaterial("Chest Texture Lid Material", textureLidColor, true);
+        }
+
+        return textureLidMaterial;
+    }
+
+    private Material GetTextureLockerMaterial()
+    {
+        if (textureLockerMaterial == null)
+        {
+            textureLockerMaterial = CreateRuntimeMaterial("Chest Texture Locker Material", textureLockerColor, true);
+        }
+
+        return textureLockerMaterial;
+    }
+
+    private static Material CreateRuntimeMaterial(string materialName, Color color, bool unlit)
+    {
+        Shader shader = unlit ? FindUnlitPreviewShader() : FindLitPreviewShader();
         Material material = new Material(shader)
         {
             name = materialName
@@ -214,7 +321,6 @@ public class Chest3DGenerator : MonoBehaviour
             material.SetColor("_Color", color);
         }
 
-        // 双面显示，降低早期原型阶段因为法线/绕序不一致导致的不可见风险。
         if (material.HasProperty("_Cull"))
         {
             material.SetFloat("_Cull", (float)CullMode.Off);
@@ -222,13 +328,13 @@ public class Chest3DGenerator : MonoBehaviour
 
         if (material.HasProperty("_Smoothness"))
         {
-            material.SetFloat("_Smoothness", 0.25f);
+            material.SetFloat("_Smoothness", 0.18f);
         }
 
         return material;
     }
 
-    private Shader FindPreviewShader()
+    private static Shader FindLitPreviewShader()
     {
         return Shader.Find("Universal Render Pipeline/Lit")
             ?? Shader.Find("Universal Render Pipeline/Simple Lit")
@@ -236,16 +342,22 @@ public class Chest3DGenerator : MonoBehaviour
             ?? Shader.Find("Sprites/Default");
     }
 
-    // 根据生成模型的 bounds 自动调整正交摄像机。
-    // 这样改参数导致模型尺寸变化时，也能尽量保持模型在画面中央。
-    private void FitCameraToGeneratedChest()
+    private static Shader FindUnlitPreviewShader()
     {
-        if (!TryGetGeneratedBounds(out Bounds bounds))
+        return Shader.Find("Universal Render Pipeline/Unlit")
+            ?? Shader.Find("Unlit/Color")
+            ?? Shader.Find("Sprites/Default")
+            ?? FindLitPreviewShader();
+    }
+
+    private void FitCameraToGeneratedChest(Camera camera, Transform generatedRoot)
+    {
+        if (camera == null || !TryGetGeneratedBounds(generatedRoot, out Bounds bounds))
         {
             return;
         }
 
-        previewCamera.orthographic = true;
+        camera.orthographic = true;
 
         Vector3 direction = cameraDirection.sqrMagnitude > 0.0001f
             ? cameraDirection.normalized
@@ -254,24 +366,53 @@ public class Chest3DGenerator : MonoBehaviour
         float radius = Mathf.Max(bounds.extents.magnitude, 0.5f);
         float distance = Mathf.Max(radius * 4f, 8f);
 
-        previewCamera.transform.position = bounds.center + direction * distance;
-        previewCamera.transform.rotation = Quaternion.LookRotation(bounds.center - previewCamera.transform.position, Vector3.up);
-        previewCamera.orthographicSize = radius * Mathf.Max(1f, cameraPadding);
-        previewCamera.nearClipPlane = 0.01f;
-        previewCamera.farClipPlane = distance + radius * 4f;
+        camera.transform.position = bounds.center + direction * distance;
+        camera.transform.rotation = Quaternion.LookRotation(bounds.center - camera.transform.position, Vector3.up);
+        camera.orthographicSize = radius * Mathf.Max(1f, cameraPadding);
+        camera.nearClipPlane = 0.01f;
+        camera.farClipPlane = distance + radius * 4f;
     }
 
-    // 合并所有生成部件的 Renderer bounds，用于相机适配。
-    private bool TryGetGeneratedBounds(out Bounds bounds)
+    private void SyncTextureCameraToEditCamera()
+    {
+        if (editPreviewCamera == null || texturePreviewCamera == null)
+        {
+            return;
+        }
+
+        int textureLayer = LayerMask.NameToLayer(textureLayerName);
+        Color textureBackground = texturePreviewCamera.backgroundColor;
+        CopyCameraPoseAndProjection(editPreviewCamera, texturePreviewCamera);
+        ConfigurePreviewCamera(texturePreviewCamera, textureLayer, textureBackground);
+    }
+
+    private static void CopyCameraPoseAndProjection(Camera source, Camera target)
+    {
+        if (source == null || target == null)
+        {
+            return;
+        }
+
+        target.transform.position = source.transform.position;
+        target.transform.rotation = source.transform.rotation;
+        target.transform.localScale = source.transform.localScale;
+        target.orthographic = source.orthographic;
+        target.orthographicSize = source.orthographicSize;
+        target.fieldOfView = source.fieldOfView;
+        target.nearClipPlane = source.nearClipPlane;
+        target.farClipPlane = source.farClipPlane;
+    }
+
+    private static bool TryGetGeneratedBounds(Transform root, out Bounds bounds)
     {
         bounds = default;
 
-        if (generatedRoot == null)
+        if (root == null)
         {
             return false;
         }
 
-        Renderer[] renderers = generatedRoot.GetComponentsInChildren<Renderer>();
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>();
 
         if (renderers.Length == 0)
         {
@@ -288,7 +429,30 @@ public class Chest3DGenerator : MonoBehaviour
         return true;
     }
 
-    // 手动销毁临时 Mesh，避免在编辑器反复生成时留下无主资源。
+    private void ClearGeneratedRootByName(string rootName, ref Transform cachedRoot)
+    {
+        Transform root = GetTargetRoot();
+        Transform existingRoot = root.Find(rootName);
+
+        if (existingRoot == null)
+        {
+            if (cachedRoot != null && cachedRoot.name == rootName)
+            {
+                cachedRoot = null;
+            }
+
+            return;
+        }
+
+        ReleaseMeshes(existingRoot);
+        DestroyGeneratedObject(existingRoot.gameObject);
+
+        if (cachedRoot != null && cachedRoot.name == rootName)
+        {
+            cachedRoot = null;
+        }
+    }
+
     private void ReleaseMeshes(Transform root)
     {
         MeshFilter[] meshFilters = root.GetComponentsInChildren<MeshFilter>();
@@ -302,8 +466,19 @@ public class Chest3DGenerator : MonoBehaviour
         }
     }
 
-    // 兼容运行时和编辑器右键菜单：
-    // Play 模式下用 Destroy，编辑器非运行状态下用 DestroyImmediate。
+    private static int ResolveLayer(string layerName, int fallbackLayer)
+    {
+        int layer = LayerMask.NameToLayer(layerName);
+
+        if (layer < 0)
+        {
+            Debug.LogWarning($"Layer '{layerName}' is missing. Falling back to layer {fallbackLayer}.");
+            return fallbackLayer;
+        }
+
+        return layer;
+    }
+
     private void DestroyGeneratedObject(Object target)
     {
         if (target == null)
