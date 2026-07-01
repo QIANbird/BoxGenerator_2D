@@ -519,13 +519,13 @@ public class Chest3DGenerator : MonoBehaviour
             : new Vector3(4f, 3f, -6f).normalized;
 
         // extents.magnitude 相当于包围盒外接球半径，适合用来估算安全相机距离。
-        float radius = Mathf.Max(bounds.extents.magnitude, 0.5f);
-        float distance = Mathf.Max(radius * 4f, 8f);
+        float radius = Mathf.Max(bounds.extents.magnitude, 0.5f);//包围盒的最小外接球半径，or 0.5
+        float distance = Mathf.Max(radius * 4f, 8f);//让相机离模型有一个安全距离
 
         // 相机看向宝箱中心；正交尺寸用 radius * padding 保证有留白。
-        camera.transform.position = bounds.center + direction * distance;
+        camera.transform.position = bounds.center + direction * distance;//把相机放到宝箱中心+观察方向×距离的位置
         camera.transform.rotation = Quaternion.LookRotation(bounds.center - camera.transform.position, Vector3.up);
-        camera.orthographicSize = radius * Mathf.Max(1f, cameraPadding);
+        camera.orthographicSize = radius * Mathf.Max(1f, cameraPadding); //camera padding是留白倍率   
 
         // 近远裁剪面跟随当前距离，避免模型被裁切。
         camera.nearClipPlane = 0.01f;

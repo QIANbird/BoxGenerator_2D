@@ -305,7 +305,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
     {
         // 切换模式时停止拖拽，避免按住鼠标时模式切换导致 pointer 状态残留。
         CancelPreviewDrag();
-        currentPreviewMode = ChestPreviewMode.Edit;
+        currentPreviewMode = ChestPreviewMode.Edit;//使用枚举值是为了更好地保护状态和维护可扩展性。
         SetPanelVisible(controlPanel, true);
         SetPanelVisible(texturePanel, false);
 
@@ -450,13 +450,12 @@ public class Chest3DPreviewUIController : MonoBehaviour
         // 将屏幕拖拽位移换算成 yaw / pitch 增量，并交给生成器维护旋转状态。
         // 当前映射：水平位移控制左右旋转，垂直位移取反后控制上下旋转。
         chestGenerator.RotatePreview(
-            delta.x * dragRotationSensitivity,
+            -delta.x * dragRotationSensitivity,
             -delta.y * dragRotationSensitivity);
 
         // 拖拽时不重新 GenerateBoth，只把已有模型旋转后重新渲染编辑模式 RenderTexture。
-        EnsurePreviewTexture(ChestPreviewMode.Edit);
         RenderPreview(ChestPreviewMode.Edit);
-        evt.StopPropagation();
+        evt.StopPropagation();//是为了独占事件，防止它继续冒泡
     }
 
     private void OnDrawingAreaPointerUp(PointerUpEvent evt)
@@ -686,7 +685,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
     {
         // 模式按钮位于 DrawingArea 内部。
         // 如果不排除它们，点击 Editing / Preview the Texture 的那一下也可能被当作拖拽起点。
-        VisualElement target = evt.target as VisualElement;
+        VisualElement target = evt.target as VisualElement;//获取事件发生的UI元素
         return IsElementOrDescendant(target, editingModeButton) ||
             IsElementOrDescendant(target, textureModeButton);
     }
