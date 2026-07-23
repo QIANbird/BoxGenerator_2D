@@ -584,10 +584,12 @@ MonoBehaviour:
   chestGenerator: {fileID: 3102}
   editPreviewCamera: {fileID: 4001}
   texturePreviewCamera: {fileID: 4101}
+  textureOutlinePostProcessor: {fileID: 0}
   fallbackTextureWidth: 1024
   fallbackTextureHeight: 768
   minTextureSize: 256
   antiAliasing: 4
+  dragRotationSensitivity: 0.3
   styleGenerateButton: 0
   generateButtonText: Generate
 --- !u!114 &3204
@@ -695,8 +697,8 @@ Camera:
   m_GameObject: {fileID: 4000}
   m_Enabled: 0
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.78, g: 0.8, b: 0.82, a: 1}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

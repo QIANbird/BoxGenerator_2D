@@ -1,0 +1,15 @@
+.blackwhite-buttom {
+    width: 116px;
+    height: 26px;
+    font-size: 11px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(32, 32, 32);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
