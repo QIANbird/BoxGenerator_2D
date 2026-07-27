@@ -2,6 +2,7 @@
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
+[Bb]in/
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
@@ -28,3 +29,10 @@ Thumbs.db
 
 # Crash reports
 sysinfo.txt
+
+# Local AI gateway secrets
+.env
+.env.*
+!.env.example
+*.secrets.json
+Server/**/appsettings.Development.local.json

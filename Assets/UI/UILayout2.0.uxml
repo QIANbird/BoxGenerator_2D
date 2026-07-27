@@ -122,21 +122,53 @@
                         <ui:VisualElement name="ParamsDividerBottom" style="height: 1px; flex-shrink: 0; background-color: rgb(176, 176, 176);" />
                         <ui:VisualElement name="ControlPanelEmpty" style="display: none; background-color: rgb(255, 255, 255);" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="TexturePanel" style="display: flex; flex-grow: 1; width: 100%; flex-direction: column; background-color: rgb(255, 255, 255); overflow: hidden;">
-                        <ui:VisualElement name="TextureHeader" style="height: 26px; justify-content: center; padding-left: 8px; background-color: rgb(232, 232, 232); display: flex;">
-                            <ui:Label text="Texture" style="font-size: 11px; color: rgb(112, 112, 112);" />
+                    <ui:VisualElement name="TexturePanel" class="texture-panel" style="display: flex;">
+                        <ui:VisualElement name="TextureHeader" class="texture-panel__header">
+                            <ui:Label text="Texture" class="texture-panel__header-label" />
                         </ui:VisualElement>
-                        <ui:VisualElement name="VisualElement" style="flex-grow: 0; height: 109px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; -unity-background-image-tint-color: rgb(243, 243, 243); background-color: rgb(221, 221, 221); margin-top: 20px; margin-right: 25px; margin-bottom: 10px; margin-left: 25px; align-content: auto; align-items: auto; justify-content: center; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;">
-                            <ui:Label text="请上传图片" style="align-items: auto; align-self: center; align-content: auto;" />
+                        <ui:VisualElement name="TextureUploadSection" class="texture-upload-section">
+                            <ui:Button name="TextureUploadButton" text="点击上传图片" tooltip="选择纹理或风格参考图" class="texture-upload-button" />
+                            <ui:Button name="TextureUploadClearButton" text="×" tooltip="清除已上传图片" class="texture-upload-clear" />
+                            <ui:Label name="TextureUploadFileLabel" text="PNG / JPG / JPEG" class="texture-upload-file-label" />
                         </ui:VisualElement>
-                        <ui:Button text="参考风格" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; width: 178px; align-self: center; height: 24px;" />
-                        <ui:VisualElement style="flex-grow: 0; height: 4%;" />
-                        <ui:TextField placeholder-text="描述当前状态下的纹理" name="TextField" style="flex-direction: column; margin-top: 10px; margin-right: 14px; margin-bottom: 10px; margin-left: 14px; height: 96px; align-content: flex-start;" />
-                        <ui:Button text="generate texture" name="btn_generate" class="blackwhite-buttom" style="align-items: auto; align-self: auto; width: auto; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; margin-top: 10px; margin-right: 30px; margin-bottom: 10px; margin-left: 30px;" />
-                        <ui:Button text="download" name="btn_download" class="blackwhite-buttom" style="align-items: auto; align-self: auto; width: auto; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; margin-top: 10px; margin-right: 30px; margin-bottom: 10px; margin-left: 30px;" />
-                        <ui:VisualElement name="TextureDivider" style="height: 1px; background-color: rgb(176, 176, 176);" />
-                        <ui:VisualElement name="TextureEmptyArea" style="flex-grow: 1; background-color: rgb(255, 255, 255); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+                        <ui:Button name="TextureStyleButton" text="Reference Style: No Style" class="texture-style-trigger" />
+                        <ui:TextField name="TexturePromptInput" placeholder-text="描述期望的纹理、材质、颜色或图案" multiline="true" class="texture-prompt-input" />
+                        <ui:Label name="TexturePromptCounter" text="0/500" class="texture-prompt-counter" />
+                        <ui:Label name="TextureErrorLabel" text="" class="texture-error-label" style="display: none;" />
+                        <ui:Label name="TextureStatusLabel" text="" class="texture-status-label" style="display: none;" />
+                        <ui:Button name="TextureGenerateButton" text="Generate Texture" class="blackwhite-buttom texture-action-button" />
+                        <ui:Button name="TextureDownloadButton" text="Download JPG" class="blackwhite-buttom texture-action-button" />
+                        <ui:VisualElement name="TextureDivider" class="texture-divider" />
+                        <ui:VisualElement name="TextureEmptyArea" class="texture-empty-area" />
+                        <ui:VisualElement name="TextureStylePopup" class="texture-style-popup" style="display: none;">
+                            <ui:VisualElement class="texture-style-popup__header">
+                                <ui:Label text="Reference Style" class="texture-style-popup__title" />
+                                <ui:Button name="TextureStylePopupClose" text="×" class="texture-style-popup__close" />
+                            </ui:VisualElement>
+                            <ui:Label text="选择一种提示词风格" class="texture-style-popup__hint" />
+                            <ui:Button name="TextureStyleNone" text="No Style" class="texture-style-card" />
+                            <ui:Button name="TextureStyleSciFi" text="硬核科幻" class="texture-style-card texture-style-card--scifi" />
+                            <ui:Button name="TextureStyleCartoon" text="卡通" class="texture-style-card texture-style-card--cartoon" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="AITextureGenerationModalOverlay" class="ai-generation-modal-overlay" picking-mode="Position" style="display: none;">
+            <ui:VisualElement name="AITextureGenerationModalCard" class="ai-generation-modal-card">
+                <ui:Label text="AI TEXTURE" class="ai-generation-modal-kicker" />
+                <ui:Label name="AITextureGenerationLoadingIndicator" text="●  ○  ○" class="ai-generation-modal-indicator" />
+                <ui:Label name="AITextureGenerationStatusLabel" text="正在生成纹理，请稍候..." class="ai-generation-modal-status" />
+                <ui:Button name="AITextureGenerationCancelButton" text="Cancel" class="ai-generation-modal-cancel" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="AITextureEditingConfirmOverlay" class="ai-editing-confirm-overlay" picking-mode="Position" style="display: none;">
+            <ui:VisualElement name="AITextureEditingConfirmCard" class="ai-editing-confirm-card">
+                <ui:Label text="返回 Editing" class="ai-editing-confirm-title" />
+                <ui:Label name="AITextureEditingConfirmMessage" text="继续编辑宝箱后，如实际修改参数，当前 AI 纹理预览将被清空。是否进入编辑模式？" class="ai-editing-confirm-message" />
+                <ui:VisualElement class="ai-editing-confirm-actions">
+                    <ui:Button name="AITextureEditingCancelButton" text="Cancel" class="ai-editing-confirm-button ai-editing-confirm-button--secondary" />
+                    <ui:Button name="AITextureEditingConfirmButton" text="Confirm" class="ai-editing-confirm-button ai-editing-confirm-button--primary" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
@@ -13,6 +14,13 @@ using UnityEngine.UIElements;
 // 本脚本只负责“UI 事件 -> 生成/渲染命令 -> DrawingArea 显示结果”的流程组织。
 public class Chest3DPreviewUIController : MonoBehaviour
 {
+    public event Action PreviewRendered;
+    public event Action EditingModeRequested;
+
+    public bool HasRenderedPreview => hasRenderedPreview;
+    public bool HasAITextureResult => aiTextureResult != null;
+    public ChestPreviewMode CurrentPreviewMode => currentPreviewMode;
+
     [Header("UI References")]
     // 当前场景中的 UI Toolkit 文档。为空时会尝试从同一个 GameObject 上获取。
     [SerializeField] private UIDocument uiDocument;
@@ -94,6 +102,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
 
     // 是否已经至少渲染过一次预览。用于避免 UI 刚布局时无意义地刷新。
     private bool hasRenderedPreview;
+    private Texture2D aiTextureResult;
 
     // 以下字段用于追踪编辑模式下的鼠标拖拽旋转。
     private bool isDraggingPreview;
@@ -215,7 +224,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
         // 底部模式按钮只切换当前模式和右侧面板，同时根据需要刷新预览。
         if (editingModeButton != null)
         {
-            editingModeButton.clicked += ShowEditingPanel;
+            editingModeButton.clicked += OnEditingModeButtonClicked;
         }
 
         if (textureModeButton != null)
@@ -248,7 +257,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
 
         if (editingModeButton != null)
         {
-            editingModeButton.clicked -= ShowEditingPanel;
+            editingModeButton.clicked -= OnEditingModeButtonClicked;
         }
 
         if (textureModeButton != null)
@@ -316,16 +325,187 @@ public class Chest3DPreviewUIController : MonoBehaviour
         }
     }
 
+    private void OnEditingModeButtonClicked()
+    {
+        if (currentPreviewMode == ChestPreviewMode.Edit)
+        {
+            return;
+        }
+
+        if (EditingModeRequested != null)
+        {
+            EditingModeRequested.Invoke();
+            return;
+        }
+
+        ShowEditingPanel();
+    }
+
+    public void EnterEditingMode()
+    {
+        ShowEditingPanel();
+    }
+
+    public void EnterTextureMode()
+    {
+        ShowTexturePanel();
+    }
+
     private void ShowTexturePanel()
     {
         // 纹理模式不响应拖拽旋转输入，因此切换前先结束当前拖拽。
         CancelPreviewDrag();
-        currentPreviewMode = ChestPreviewMode.TextureLine;
         SetPanelVisible(controlPanel, false);
         SetPanelVisible(texturePanel, true);
 
+        if (aiTextureResult != null)
+        {
+            currentPreviewMode = ChestPreviewMode.AIResult;
+            ApplyAITextureToDrawingArea();
+            return;
+        }
+
         // 进入纹理模式时立即生成/渲染线稿预览。
+        currentPreviewMode = ChestPreviewMode.TextureLine;
         GenerateAndRenderPreview(ChestPreviewMode.TextureLine);
+    }
+
+    public bool DisplayAITextureResult(Texture2D resultTexture)
+    {
+        if (resultTexture == null)
+        {
+            return false;
+        }
+
+        CancelPreviewDrag();
+        aiTextureResult = resultTexture;
+        currentPreviewMode = ChestPreviewMode.AIResult;
+        SetPanelVisible(controlPanel, false);
+        SetPanelVisible(texturePanel, true);
+        ApplyAITextureToDrawingArea();
+        hasRenderedPreview = true;
+        PreviewRendered?.Invoke();
+        return true;
+    }
+
+    public bool TryCaptureCurrentPreviewImage(
+        out Texture2D capturedImage,
+        out string errorMessage)
+    {
+        capturedImage = null;
+
+        if (!hasRenderedPreview)
+        {
+            errorMessage = "No chest preview is available to export.";
+            return false;
+        }
+
+        Texture sourceTexture = GetCurrentPreviewTexture();
+
+        if (sourceTexture == null ||
+            sourceTexture.width <= 0 ||
+            sourceTexture.height <= 0)
+        {
+            errorMessage = "The current preview image is unavailable.";
+            return false;
+        }
+
+        if (sourceTexture is RenderTexture sourceRenderTexture &&
+            !sourceRenderTexture.IsCreated())
+        {
+            errorMessage = "The current preview render texture is not ready.";
+            return false;
+        }
+
+        RenderTexture temporary = null;
+        RenderTexture previousActive = RenderTexture.active;
+
+        try
+        {
+            temporary = RenderTexture.GetTemporary(
+                sourceTexture.width,
+                sourceTexture.height,
+                0,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.sRGB);
+            Graphics.Blit(sourceTexture, temporary);
+            RenderTexture.active = temporary;
+
+            capturedImage = new Texture2D(
+                sourceTexture.width,
+                sourceTexture.height,
+                TextureFormat.RGB24,
+                false,
+                false)
+            {
+                name = "ChestCurrentPreviewExport"
+            };
+
+            capturedImage.ReadPixels(
+                new Rect(
+                    0,
+                    0,
+                    sourceTexture.width,
+                    sourceTexture.height),
+                0,
+                0,
+                false);
+            capturedImage.Apply(false, false);
+            errorMessage = "";
+            return true;
+        }
+        catch (Exception exception)
+        {
+            if (capturedImage != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(capturedImage);
+                }
+                else
+                {
+                    DestroyImmediate(capturedImage);
+                }
+
+                capturedImage = null;
+            }
+
+            errorMessage =
+                $"Unable to capture the current preview: {exception.Message}";
+            return false;
+        }
+        finally
+        {
+            RenderTexture.active = previousActive;
+
+            if (temporary != null)
+            {
+                RenderTexture.ReleaseTemporary(temporary);
+            }
+        }
+    }
+
+    public void ClearAITextureResult(bool restoreDefaultPreview = true)
+    {
+        aiTextureResult = null;
+
+        if (currentPreviewMode != ChestPreviewMode.AIResult)
+        {
+            return;
+        }
+
+        currentPreviewMode = ChestPreviewMode.TextureLine;
+
+        if (restoreDefaultPreview && hasRenderedPreview)
+        {
+            GenerateAndRenderPreview(ChestPreviewMode.TextureLine);
+            return;
+        }
+
+        if (drawingArea != null)
+        {
+            drawingArea.style.backgroundImage = StyleKeyword.None;
+        }
     }
 
     private static void SetPanelVisible(VisualElement panel, bool visible)
@@ -343,6 +523,12 @@ public class Chest3DPreviewUIController : MonoBehaviour
     {
         // 对外的便捷入口：按当前模式刷新预览。
         // ChestParameterPanelController 参数变化后会调用这个无参版本。
+        if (currentPreviewMode == ChestPreviewMode.AIResult)
+        {
+            ApplyAITextureToDrawingArea();
+            return;
+        }
+
         GenerateAndRenderPreview(currentPreviewMode);
     }
 
@@ -352,6 +538,17 @@ public class Chest3DPreviewUIController : MonoBehaviour
         // 注意：这里会调用 chestGenerator.GenerateBoth()，因此适合参数变化、首次生成、模式切换等需要重建模型的场景。
         // 拖拽旋转不走这个方法，因为拖拽只改变角度，不需要重新生成 mesh。
         ResolveReferences();
+
+        if (mode == ChestPreviewMode.AIResult)
+        {
+            if (aiTextureResult != null)
+            {
+                currentPreviewMode = ChestPreviewMode.AIResult;
+                ApplyAITextureToDrawingArea();
+            }
+
+            return;
+        }
 
         if (chestGenerator == null)
         {
@@ -381,6 +578,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
         // 手动调用 Camera.Render，并把结果显示到 DrawingArea。
         RenderPreview(mode);
         hasRenderedPreview = true;
+        PreviewRendered?.Invoke();
     }
 
     private void OnDrawingAreaGeometryChanged(GeometryChangedEvent evt)
@@ -389,6 +587,12 @@ public class Chest3DPreviewUIController : MonoBehaviour
         // 如果已经有预览，就按新尺寸重建 RenderTexture 并重新渲染。
         if (evt.newRect.width <= 0f || evt.newRect.height <= 0f || !hasRenderedPreview)
         {
+            return;
+        }
+
+        if (currentPreviewMode == ChestPreviewMode.AIResult)
+        {
+            ApplyAITextureToDrawingArea();
             return;
         }
 
@@ -500,7 +704,7 @@ public class Chest3DPreviewUIController : MonoBehaviour
     {
         // 根据 DrawingArea 当前像素尺寸创建或复用 RenderTexture。
         // RenderTexture 尺寸要尽量匹配 UI 区域，避免预览模糊或拉伸。
-        if (drawingArea == null)
+        if (drawingArea == null || mode == ChestPreviewMode.AIResult)
         {
             return;
         }
@@ -577,6 +781,12 @@ public class Chest3DPreviewUIController : MonoBehaviour
     {
         // 手动驱动预览相机渲染。
         // 因为预览相机 enabled = false，所以不会进入 Unity 默认相机渲染流程。
+        if (mode == ChestPreviewMode.AIResult)
+        {
+            ApplyAITextureToDrawingArea();
+            return;
+        }
+
         Camera camera = GetCameraForMode(mode);
 
         if (camera == null)
@@ -679,6 +889,36 @@ public class Chest3DPreviewUIController : MonoBehaviour
         }
 
         drawingArea.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(texture));
+    }
+
+    private void ApplyAITextureToDrawingArea()
+    {
+        if (drawingArea == null || aiTextureResult == null)
+        {
+            return;
+        }
+
+        drawingArea.style.backgroundSize =
+            new BackgroundSize(BackgroundSizeType.Contain);
+        drawingArea.style.backgroundPositionX =
+            new BackgroundPosition(BackgroundPositionKeyword.Center);
+        drawingArea.style.backgroundPositionY =
+            new BackgroundPosition(BackgroundPositionKeyword.Center);
+        drawingArea.style.backgroundImage =
+            new StyleBackground(aiTextureResult);
+    }
+
+    private Texture GetCurrentPreviewTexture()
+    {
+        switch (currentPreviewMode)
+        {
+            case ChestPreviewMode.AIResult:
+                return aiTextureResult;
+            case ChestPreviewMode.TextureLine:
+                return texturePreviewTexture;
+            default:
+                return editPreviewTexture;
+        }
     }
 
     private bool IsPointerOverModeButton(EventBase evt)

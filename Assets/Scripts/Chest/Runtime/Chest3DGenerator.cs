@@ -8,7 +8,8 @@ using UnityEngine.Serialization;
 public enum ChestPreviewMode
 {
     Edit,
-    TextureLine
+    TextureLine,
+    AIResult
 }
 
 // 3D 宝箱预览的运行时装配器。
@@ -135,6 +136,19 @@ public class Chest3DGenerator : MonoBehaviour
             // 纹理线稿后处理器会用这个根节点去遍历 Renderer，生成轮廓/线稿效果。
             return textureGeneratedRoot;
         }
+    }
+
+    public bool HasGeneratedChest => editGeneratedRoot != null;
+
+    public Vector3 PreviewEulerAngles =>
+        new Vector3(previewPitch, previewYaw, 0f);
+
+    public ChestLatentParams CreateParameterSnapshot()
+    {
+        ResolveReferences();
+        return parameterState != null
+            ? parameterState.CreateParamsCopy()
+            : null;
     }
 
     private void Awake()

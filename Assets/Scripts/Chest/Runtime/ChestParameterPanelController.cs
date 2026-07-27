@@ -15,6 +15,8 @@ using UnityEngine.UIElements;
 [RequireComponent(typeof(UIDocument))]
 public class ChestParameterPanelController : MonoBehaviour
 {
+    public event Action ParametersChanged;
+
     [Header("References")]
     // 承载 UILayout2.0.uxml 的 UI Document。没有手动指定时会从当前 GameObject 自动获取。
     [SerializeField] private UIDocument uiDocument;
@@ -416,10 +418,18 @@ public class ChestParameterPanelController : MonoBehaviour
     {
         // 参数写入流程：用户值 -> 当前参数副本 -> ClampValues 统一修正 -> UI 全量同步 -> 预览刷新。
         ChestLatentParams parameters = parameterState.CurrentParams;//取得当前参数对象
+        ChestLatentParams previousParameters = parameters.Clone();
         float fallback = binding.GetValue(parameters);//记录旧值 fallback,主要用于防止用户输入奇怪的非法浮点数
         binding.SetValue(parameters, SanitizeFloat(requestedValue, fallback));
         parameters.ClampValues();
         SyncAllControls();//SyncAllControls() 是“把参数状态重新投射到 UI 上”的总刷新函数；
+
+        if (AreParametersEquivalent(previousParameters, parameters))
+        {
+            return;
+        }
+
+        ParametersChanged?.Invoke();
         RenderPreview();
     }
 
@@ -427,9 +437,17 @@ public class ChestParameterPanelController : MonoBehaviour
     {
         // int 参数同样走 ClampValues，这样 lidSegments 的上下限只在数据层维护一份。
         ChestLatentParams parameters = parameterState.CurrentParams;
+        ChestLatentParams previousParameters = parameters.Clone();
         binding.SetValue(parameters, requestedValue);
         parameters.ClampValues();
         SyncAllControls();
+
+        if (AreParametersEquivalent(previousParameters, parameters))
+        {
+            return;
+        }
+
+        ParametersChanged?.Invoke();
         RenderPreview();
     }
     //把参数状态重新投射到 UI 上”的总刷新函数
@@ -632,6 +650,31 @@ public class ChestParameterPanelController : MonoBehaviour
     {
         // 参数面板只显示必要精度，避免 300.000000 这类数值挤占输入框空间。
         return value.ToString("0.##", CultureInfo.InvariantCulture);
+    }
+
+    private static bool AreParametersEquivalent(
+        ChestLatentParams left,
+        ChestLatentParams right)
+    {
+        if (left == null || right == null)
+        {
+            return left == right;
+        }
+
+        return Mathf.Approximately(left.width, right.width) &&
+               Mathf.Approximately(left.height, right.height) &&
+               Mathf.Approximately(left.depth, right.depth) &&
+               Mathf.Approximately(left.bodyThickness, right.bodyThickness) &&
+               Mathf.Approximately(left.taper, right.taper) &&
+               Mathf.Approximately(left.lidHeight, right.lidHeight) &&
+               left.lidSegments == right.lidSegments &&
+               Mathf.Approximately(left.lidThickness, right.lidThickness) &&
+               Mathf.Approximately(left.lockerWidth, right.lockerWidth) &&
+               Mathf.Approximately(left.lockerHeight, right.lockerHeight) &&
+               Mathf.Approximately(left.lockerDepth, right.lockerDepth) &&
+               Mathf.Approximately(
+                   left.lockerAnchorDepth,
+                   right.lockerAnchorDepth);
     }
 
     private sealed class FloatParamBinding

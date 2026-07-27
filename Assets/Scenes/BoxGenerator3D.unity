@@ -520,6 +520,16 @@ GameObject:
   - component: {fileID: 3202}
   - component: {fileID: 3203}
   - component: {fileID: 3204}
+  - component: {fileID: 3205}
+  - component: {fileID: 3206}
+  - component: {fileID: 3207}
+  - component: {fileID: 3208}
+  - component: {fileID: 3209}
+  - component: {fileID: 3210}
+  - component: {fileID: 3211}
+  - component: {fileID: 3212}
+  - component: {fileID: 3213}
+  - component: {fileID: 3214}
   m_Layer: 0
   m_Name: UIRoot
   m_TagString: Untagged
@@ -608,6 +618,208 @@ MonoBehaviour:
   parameterState: {fileID: 3002}
   previewController: {fileID: 3203}
   parameterScrollName: ParameterScroll
+--- !u!114 &3205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c29df72218b64cac87480816ff5baff1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  serviceBehaviour: {fileID: 3214}
+  inputState:
+    userPrompt:
+    selectedStyle:
+      id: no_style
+      displayName: No Style
+      promptSuffix:
+  logStateChanges: 1
+  status: 0
+  activeRequestId:
+  lastError:
+--- !u!114 &3206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ad41df8799247bd97729a28f44c19e6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  delaySeconds: 2
+  outcome: 0
+  failureMessage: Local mock AI texture generation failed.
+  mockResultTexture: {fileID: 0}
+  previewSelectedStyle: 1
+  stylePreviewStrength: 0.55
+  logRequests: 1
+--- !u!114 &3207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8617574ff2ad4b3796436c9fda98e3cb, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  uiDocument: {fileID: 3202}
+  generationCoordinator: {fileID: 3205}
+  requestBuilder: {fileID: 3209}
+  previewController: {fileID: 3203}
+  maxPromptCharacters: 500
+  maxImageFileSizeMegabytes: 10
+  texturePanelName: TexturePanel
+  uploadButtonName: TextureUploadButton
+  clearUploadButtonName: TextureUploadClearButton
+  uploadFileLabelName: TextureUploadFileLabel
+  styleButtonName: TextureStyleButton
+  stylePopupName: TextureStylePopup
+  stylePopupCloseButtonName: TextureStylePopupClose
+  noStyleButtonName: TextureStyleNone
+  sciFiStyleButtonName: TextureStyleSciFi
+  cartoonStyleButtonName: TextureStyleCartoon
+  promptInputName: TexturePromptInput
+  promptCounterName: TexturePromptCounter
+  generateButtonName: TextureGenerateButton
+  downloadButtonName: TextureDownloadButton
+  errorLabelName: TextureErrorLabel
+  statusLabelName: TextureStatusLabel
+--- !u!114 &3208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83ef8e4b1fc34501ad2bb93baf6d7810, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  uiDocument: {fileID: 3202}
+  chestGenerator: {fileID: 3102}
+  editingPreviewCamera: {fileID: 4001}
+  drawingAreaName: DrawingArea
+  fallbackCanvasWidth: 1024
+  fallbackCanvasHeight: 768
+  sizeSettings:
+    mode: 0
+    fixedWidth: 1024
+    fixedHeight: 768
+    minimumDimension: 256
+    maximumDimension: 2048
+  antiAliasing: 4
+--- !u!114 &3209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3679111ebcfa45bbabe429ac3dc05fa4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  referenceCapture: {fileID: 3208}
+--- !u!114 &3210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c89a32113afe4ab188b33bbb07005f5d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  generationCoordinator: {fileID: 3205}
+  previewController: {fileID: 3203}
+  panelController: {fileID: 3207}
+--- !u!114 &3211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41d496f565e641cdbe44e125b7ba9930, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  uiDocument: {fileID: 3202}
+  generationCoordinator: {fileID: 3205}
+  overlayName: AITextureGenerationModalOverlay
+  statusLabelName: AITextureGenerationStatusLabel
+  loadingIndicatorName: AITextureGenerationLoadingIndicator
+  cancelButtonName: AITextureGenerationCancelButton
+--- !u!114 &3212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0bd4b281264265978947113f67bd68, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  uiDocument: {fileID: 3202}
+  generationCoordinator: {fileID: 3205}
+  previewController: {fileID: 3203}
+  parameterPanelController: {fileID: 3204}
+  overlayName: AITextureEditingConfirmOverlay
+  confirmButtonName: AITextureEditingConfirmButton
+  cancelButtonName: AITextureEditingCancelButton
+--- !u!114 &3213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f304c9b22dc94221afaa5cb6d5a577d3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  panelController: {fileID: 3207}
+  previewController: {fileID: 3203}
+  jpegQuality: 95
+  exportFolderName: Exports
+  fileNamePrefix: chest_preview_
+  logSavedPath: 1
+--- !u!114 &3214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6b3d9c227db4f219c16dce7ad6d2b01, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  gatewayBaseUrl: http://127.0.0.1:5088
+  pollIntervalSeconds: 1
+  requestTimeoutSeconds: 45
+  totalGenerationTimeoutSeconds: 360
+  inputJpegQuality: 95
+  logRequestLifecycle: 1
 --- !u!1 &3300
 GameObject:
   m_ObjectHideFlags: 0
