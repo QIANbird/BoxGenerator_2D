@@ -10,6 +10,9 @@ public sealed class RemoteAITextureGenerationService :
     IAITextureGenerationService
 {
     private const int MaximumGatewayImageBytes = 20 * 1024 * 1024;
+    private const int MinimumProviderImageDimension = 240;
+    private const int MaximumProviderImageDimension = 8000;
+    private const float MaximumProviderImageAspectRatio = 8f;
 
     [Header("Gateway")]
     [Tooltip("Only configure the application Gateway URL here. Never enter an Alibaba API key.")]
@@ -128,7 +131,6 @@ public sealed class RemoteAITextureGenerationService :
         {
             new MultipartFormDataSection("requestId", request.requestId),
             new MultipartFormDataSection("prompt", request.finalPrompt),
-            new MultipartFormDataSection("styleId", request.styleId ?? ""),
             new MultipartFormDataSection(
                 "targetWidth",
                 request.outputWidth.ToString()),
@@ -141,6 +143,15 @@ public sealed class RemoteAITextureGenerationService :
                 "editing-base-shape.jpg",
                 "image/jpeg")
         };
+
+        // Unity rejects multipart sections with an empty body. No Style is a
+        // valid selection, so omit this optional field instead of sending "".
+        if (!string.IsNullOrWhiteSpace(request.styleId))
+        {
+            form.Add(new MultipartFormDataSection(
+                "styleId",
+                request.styleId));
+        }
 
         if (styleReferenceJpeg != null)
         {
@@ -633,6 +644,7 @@ public sealed class RemoteAITextureGenerationService :
             TextureFormat.RGBA32,
             false,
             false);
+        Texture2D resized = null;
         Texture2D opaque = null;
 
         try
@@ -643,7 +655,25 @@ public sealed class RemoteAITextureGenerationService :
                     "Input image could not be decoded.");
             }
 
-            Color32[] pixels = decoded.GetPixels32();
+            GetProviderSafeDimensions(
+                decoded.width,
+                decoded.height,
+                out int transportWidth,
+                out int transportHeight);
+
+            Texture2D transportSource = decoded;
+
+            if (transportWidth != decoded.width ||
+                transportHeight != decoded.height)
+            {
+                resized = CreateReadableResizedTexture(
+                    decoded,
+                    transportWidth,
+                    transportHeight);
+                transportSource = resized;
+            }
+
+            Color32[] pixels = transportSource.GetPixels32();
 
             for (int i = 0; i < pixels.Length; i++)
             {
@@ -658,8 +688,8 @@ public sealed class RemoteAITextureGenerationService :
             }
 
             opaque = new Texture2D(
-                decoded.width,
-                decoded.height,
+                transportSource.width,
+                transportSource.height,
                 TextureFormat.RGB24,
                 false,
                 false);
@@ -670,7 +700,92 @@ public sealed class RemoteAITextureGenerationService :
         finally
         {
             DestroyRuntimeObject(decoded);
+            DestroyRuntimeObject(resized);
             DestroyRuntimeObject(opaque);
+        }
+    }
+
+    private static void GetProviderSafeDimensions(
+        int sourceWidth,
+        int sourceHeight,
+        out int targetWidth,
+        out int targetHeight)
+    {
+        if (sourceWidth <= 0 || sourceHeight <= 0)
+        {
+            throw new InvalidOperationException(
+                "Input image dimensions are invalid.");
+        }
+
+        float aspectRatio = (float)sourceWidth / sourceHeight;
+
+        if (aspectRatio > MaximumProviderImageAspectRatio ||
+            aspectRatio < 1f / MaximumProviderImageAspectRatio)
+        {
+            throw new InvalidOperationException(
+                "Input image aspect ratio must be between 1:8 and 8:1.");
+        }
+
+        float scale = 1f;
+        int minimumSide = Mathf.Min(sourceWidth, sourceHeight);
+        int maximumSide = Mathf.Max(sourceWidth, sourceHeight);
+
+        if (minimumSide < MinimumProviderImageDimension)
+        {
+            scale = (float)MinimumProviderImageDimension / minimumSide;
+        }
+
+        if (maximumSide * scale > MaximumProviderImageDimension)
+        {
+            scale = (float)MaximumProviderImageDimension / maximumSide;
+        }
+
+        targetWidth = Mathf.Clamp(
+            Mathf.RoundToInt(sourceWidth * scale),
+            MinimumProviderImageDimension,
+            MaximumProviderImageDimension);
+        targetHeight = Mathf.Clamp(
+            Mathf.RoundToInt(sourceHeight * scale),
+            MinimumProviderImageDimension,
+            MaximumProviderImageDimension);
+    }
+
+    private static Texture2D CreateReadableResizedTexture(
+        Texture source,
+        int width,
+        int height)
+    {
+        RenderTexture temporary = RenderTexture.GetTemporary(
+            width,
+            height,
+            0,
+            RenderTextureFormat.ARGB32,
+            RenderTextureReadWrite.sRGB);
+        RenderTexture previous = RenderTexture.active;
+
+        try
+        {
+            Graphics.Blit(source, temporary);
+            RenderTexture.active = temporary;
+
+            Texture2D result = new Texture2D(
+                width,
+                height,
+                TextureFormat.RGBA32,
+                false,
+                false);
+            result.ReadPixels(
+                new Rect(0, 0, width, height),
+                0,
+                0,
+                false);
+            result.Apply(false, false);
+            return result;
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(temporary);
         }
     }
 

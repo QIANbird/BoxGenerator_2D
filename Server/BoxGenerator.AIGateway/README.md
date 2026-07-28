@@ -34,6 +34,17 @@ Unity 场景 `BoxGenerator3D` 已配置 `RemoteAITextureGenerationService`，
 | `BAILIAN_OUTPUT_SIZE` | 否 | `1K`（默认）或 `2K` |
 | `ASPNETCORE_URLS` | 否 | 默认 `http://127.0.0.1:5088` |
 
+使用 Windows“环境变量”界面新增或修改变量后，必须关闭旧终端并新开一个
+PowerShell，再从新终端启动 Gateway。仅在旧终端中停止并重新运行 Gateway，
+进程仍可能继承旧终端原有的环境变量。
+
+项目的 `launchSettings.json` 不设置 `AI_GATEWAY_MODE`，因此不会覆盖系统或
+用户环境变量。也可以使用以下命令明确跳过 launch profile：
+
+```powershell
+dotnet run --no-launch-profile --project Server\BoxGenerator.AIGateway\BoxGenerator.AIGateway.csproj
+```
+
 配置完成后重新启动 Gateway。通过 `/health` 检查：
 
 ```json

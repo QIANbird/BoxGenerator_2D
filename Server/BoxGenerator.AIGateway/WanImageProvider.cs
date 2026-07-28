@@ -185,8 +185,21 @@ public sealed class WanImageProvider
             }
         }
 
-        string errorCode = response.Code ?? "";
-        string errorMessage = response.Message ?? "";
+        WanTaskResult? failedSubtask = response.Output?
+            .Results?
+            .FirstOrDefault(result =>
+                !string.IsNullOrWhiteSpace(result.Code) ||
+                !string.IsNullOrWhiteSpace(result.Message));
+        string errorCode =
+            response.Output?.Code ??
+            failedSubtask?.Code ??
+            response.Code ??
+            "";
+        string errorMessage =
+            response.Output?.Message ??
+            failedSubtask?.Message ??
+            response.Message ??
+            "";
 
         if (status == ProviderTaskStatus.Failed &&
             string.IsNullOrWhiteSpace(errorMessage))
@@ -396,6 +409,24 @@ public sealed class WanImageProvider
 
         [JsonPropertyName("choices")]
         public WanChoice[]? Choices { get; set; }
+
+        [JsonPropertyName("code")]
+        public string? Code { get; set; }
+
+        [JsonPropertyName("message")]
+        public string? Message { get; set; }
+
+        [JsonPropertyName("results")]
+        public WanTaskResult[]? Results { get; set; }
+    }
+
+    private sealed class WanTaskResult
+    {
+        [JsonPropertyName("code")]
+        public string? Code { get; set; }
+
+        [JsonPropertyName("message")]
+        public string? Message { get; set; }
     }
 
     private sealed class WanChoice

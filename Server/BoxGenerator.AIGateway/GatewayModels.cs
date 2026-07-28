@@ -147,10 +147,114 @@ public sealed record GenerationSubmission(
                 "An uploaded file is not a valid JPEG image.");
         }
 
+        if (!TryReadJpegDimensions(bytes, out int width, out int height))
+        {
+            throw new GatewayValidationException(
+                "An uploaded JPEG has invalid or unsupported dimensions.");
+        }
+
+        double aspectRatio = (double)width / height;
+
+        if (width < 240 ||
+            width > 8000 ||
+            height < 240 ||
+            height > 8000 ||
+            aspectRatio < 1d / 8d ||
+            aspectRatio > 8d)
+        {
+            throw new GatewayValidationException(
+                "Each image must be 240-8000 pixels per side with an aspect ratio between 1:8 and 8:1.");
+        }
+
         return new UploadedImage(
             bytes,
             "image/jpeg",
             Path.GetFileName(file.FileName));
+    }
+
+    private static bool TryReadJpegDimensions(
+        byte[] bytes,
+        out int width,
+        out int height)
+    {
+        width = 0;
+        height = 0;
+        int offset = 2;
+
+        while (offset + 3 < bytes.Length)
+        {
+            if (bytes[offset] != 0xFF)
+            {
+                offset++;
+                continue;
+            }
+
+            while (offset < bytes.Length && bytes[offset] == 0xFF)
+            {
+                offset++;
+            }
+
+            if (offset >= bytes.Length)
+            {
+                return false;
+            }
+
+            byte marker = bytes[offset++];
+
+            if (marker == 0xD8 ||
+                marker == 0xD9 ||
+                marker == 0x01 ||
+                marker is >= 0xD0 and <= 0xD7)
+            {
+                continue;
+            }
+
+            if (offset + 1 >= bytes.Length)
+            {
+                return false;
+            }
+
+            int segmentLength =
+                (bytes[offset] << 8) |
+                bytes[offset + 1];
+
+            if (segmentLength < 2 ||
+                offset + segmentLength > bytes.Length)
+            {
+                return false;
+            }
+
+            if (IsStartOfFrame(marker) && segmentLength >= 7)
+            {
+                height =
+                    (bytes[offset + 3] << 8) |
+                    bytes[offset + 4];
+                width =
+                    (bytes[offset + 5] << 8) |
+                    bytes[offset + 6];
+                return width > 0 && height > 0;
+            }
+
+            // Start-of-scan occurs after the frame header. If no supported SOF
+            // marker was found before this point, do not scan compressed bytes.
+            if (marker == 0xDA)
+            {
+                return false;
+            }
+
+            offset += segmentLength;
+        }
+
+        return false;
+    }
+
+    private static bool IsStartOfFrame(byte marker)
+    {
+        return marker is
+            0xC0 or 0xC1 or 0xC2 or 0xC3 or
+            0xC5 or 0xC6 or 0xC7 or
+            0xC9 or 0xCA or 0xCB or
+            0xCD or 0xCE or 0xCF;
     }
 }
 
