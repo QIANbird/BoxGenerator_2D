@@ -21,9 +21,12 @@ GatewayOptions gatewayOptions = GatewayOptions.FromEnvironment();
 builder.Services.AddSingleton(gatewayOptions);
 builder.Services.AddSingleton<GenerationStore>();
 builder.Services.AddSingleton<WanImageProvider>();
+builder.Services.AddSingleton<TokenPlanGenerationService>();
+builder.Services.AddHostedService(serviceProvider =>
+    serviceProvider.GetRequiredService<TokenPlanGenerationService>());
 builder.Services.AddHttpClient(
     WanImageProvider.ProviderClientName,
-    client => client.Timeout = TimeSpan.FromSeconds(45));
+    client => client.Timeout = TimeSpan.FromMinutes(5));
 builder.Services.AddHttpClient(
     WanImageProvider.ResultClientName,
     client => client.Timeout = TimeSpan.FromSeconds(90));
@@ -36,6 +39,9 @@ app.MapGet("/health", (GatewayOptions options) => Results.Ok(new
     status = "ok",
     mode = options.Mode.ToString().ToLowerInvariant(),
     providerConfigured = options.IsProviderConfigured,
+    provider = options.Mode == GatewayMode.TokenPlan
+        ? "aliyun-token-plan"
+        : options.Mode.ToString().ToLowerInvariant(),
     model = options.Model
 }));
 
@@ -46,6 +52,7 @@ app.MapPost(
         GenerationStore store,
         GatewayOptions options,
         WanImageProvider provider,
+        TokenPlanGenerationService tokenPlanService,
         CancellationToken cancellationToken) =>
     {
         GenerationSubmission? submission;
@@ -89,7 +96,7 @@ app.MapPost(
         {
             job.Fail(
                 "gateway_not_configured",
-                "The Wan provider is not configured. Set the required server environment variables.");
+                options.ConfigurationErrorMessage);
 
             return Results.Json(
                 job.ToResponse(),
@@ -98,11 +105,30 @@ app.MapPost(
 
         try
         {
+            if (options.Mode == GatewayMode.TokenPlan)
+            {
+                if (!tokenPlanService.Enqueue(job, submission))
+                {
+                    job.Fail(
+                        "gateway_queue_unavailable",
+                        "The Token Plan generation queue is unavailable.");
+
+                    return Results.Json(
+                        job.ToResponse(),
+                        statusCode:
+                            StatusCodes.Status503ServiceUnavailable);
+                }
+
+                return Results.Accepted(
+                    $"/api/v1/generations/{Uri.EscapeDataString(job.RequestId)}",
+                    job.ToResponse());
+            }
+
             ProviderSubmissionResult providerResult =
                 await provider.SubmitAsync(submission, cancellationToken);
 
             job.MarkSubmitted(
-                providerResult.TaskId,
+                providerResult.TaskId!,
                 providerResult.ProviderRequestId);
 
             return Results.Accepted(
@@ -222,7 +248,10 @@ app.MapGet(
 
 app.MapDelete(
     "/api/v1/generations/{requestId}",
-    (string requestId, GenerationStore store) =>
+    (
+        string requestId,
+        GenerationStore store,
+        TokenPlanGenerationService tokenPlanService) =>
     {
         if (!store.TryGet(requestId, out GenerationJob? job))
         {
@@ -232,6 +261,7 @@ app.MapDelete(
         }
 
         job!.Cancel();
+        tokenPlanService.Cancel(requestId);
         return Results.NoContent();
     });
 

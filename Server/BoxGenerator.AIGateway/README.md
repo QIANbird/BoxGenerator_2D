@@ -1,87 +1,98 @@
 # Box Generator AI Gateway
 
-该服务是 Unity 与阿里云百炼之间的安全边界。Unity 只调用 Gateway，
-`DASHSCOPE_API_KEY` 仅由 Gateway 进程读取，不会进入 Unity 工程、场景或安装包。
+该服务是 Unity 与阿里云万相之间的安全边界。Unity 只调用本地 Gateway，
+云端 API Key 仅由 Gateway 进程读取，不会进入 Unity 工程、场景或安装包。
 
-## 本地 Mock 联调
+## 支持的运行模式
 
-Gateway 默认是 `mock` 模式，不需要 API Key。启动：
+`AI_GATEWAY_MODE` 支持三种值：
 
-```powershell
-dotnet run --project Server\BoxGenerator.AIGateway\BoxGenerator.AIGateway.csproj
-```
+- `mock`：默认值，不调用云端，返回 Editing 基本型图以测试完整客户端流程。
+- `tokenplan`：个人 Token Plan 套餐模式，使用套餐固定域名及 `sk-sp-` Key。
+- `wan`：标准百炼 Workspace 模式，保留供以后切换。
 
-默认监听 `http://127.0.0.1:5088`。健康检查：
-
-```text
-GET http://127.0.0.1:5088/health
-```
-
-Unity 场景 `BoxGenerator3D` 已配置 `RemoteAITextureGenerationService`，
-地址为 `http://127.0.0.1:5088`。Mock Gateway 会把 Editing 基本型图作为结果返回，
-用于验证完整网络链路、加载弹窗、取消、二维展示和下载功能。
-
-## 切换至万相 2.7
-
-请在运行 Gateway 的系统环境中配置以下变量，不要将值写入项目文件：
-
-| 环境变量 | 必需 | 说明 |
-| --- | --- | --- |
-| `AI_GATEWAY_MODE` | 是 | 设置为 `wan` 才会产生真实云端调用 |
-| `DASHSCOPE_API_KEY` | 是 | 北京地域百炼 API Key |
-| `BAILIAN_WORKSPACE_ID` | 是 | 北京地域 Workspace ID |
-| `BAILIAN_REGION` | 否 | 默认且当前仅允许 `cn-beijing` |
-| `BAILIAN_OUTPUT_SIZE` | 否 | `1K`（默认）或 `2K` |
-| `ASPNETCORE_URLS` | 否 | 默认 `http://127.0.0.1:5088` |
-
-使用 Windows“环境变量”界面新增或修改变量后，必须关闭旧终端并新开一个
-PowerShell，再从新终端启动 Gateway。仅在旧终端中停止并重新运行 Gateway，
-进程仍可能继承旧终端原有的环境变量。
-
-项目的 `launchSettings.json` 不设置 `AI_GATEWAY_MODE`，因此不会覆盖系统或
-用户环境变量。也可以使用以下命令明确跳过 launch profile：
+启动命令：
 
 ```powershell
 dotnet run --no-launch-profile --project Server\BoxGenerator.AIGateway\BoxGenerator.AIGateway.csproj
 ```
 
-配置完成后重新启动 Gateway。通过 `/health` 检查：
+默认监听 `http://127.0.0.1:5088`，健康检查地址为：
+
+```text
+GET http://127.0.0.1:5088/health
+```
+
+## Token Plan 本地测试配置
+
+只在 Windows 用户环境变量或当前终端中设置下列值，不要将真实值写入仓库：
+
+| 环境变量 | 必需 | 说明 |
+| --- | --- | --- |
+| `AI_GATEWAY_MODE` | 是 | 设置为 `tokenplan` |
+| `TOKEN_PLAN_API_KEY` | 是 | Token Plan 控制台签发的 `sk-sp-` Key |
+| `AI_IMAGE_OUTPUT_SIZE` | 否 | `1K`（默认）或 `2K` |
+| `ASPNETCORE_URLS` | 否 | 默认 `http://127.0.0.1:5088` |
+
+Token Plan 不读取、也不需要 `BAILIAN_WORKSPACE_ID`。其服务地址固定为：
+
+```text
+https://token-plan.cn-beijing.maas.aliyuncs.com/api/v1/
+```
+
+配置环境变量后，必须关闭原来的终端，新开 PowerShell，再启动 Gateway。
+健康检查的预期结果类似：
 
 ```json
 {
   "status": "ok",
-  "mode": "wan",
+  "mode": "tokenplan",
   "providerConfigured": true,
+  "provider": "aliyun-token-plan",
   "model": "wan2.7-image-pro"
 }
 ```
 
-不要把 API Key 粘贴到聊天、Inspector、命令行脚本或仓库文件中。推荐通过
-Windows“环境变量”界面配置开发机的用户级变量；生产环境改用部署平台 Secret
-或阿里云 KMS。
+如果 `providerConfigured` 为 `false`，请检查 Key 是否存在且以 `sk-sp-` 开头。
+健康检查不会返回 Key 内容。
 
-## 接口
+## 标准百炼 Workspace 模式
 
-- `POST /api/v1/generations`：multipart 创建异步任务。
+如以后需要切回标准模式，配置：
+
+| 环境变量 | 必需 | 说明 |
+| --- | --- | --- |
+| `AI_GATEWAY_MODE` | 是 | 设置为 `wan` |
+| `DASHSCOPE_API_KEY` | 是 | 标准百炼 API Key |
+| `BAILIAN_WORKSPACE_ID` | 是 | 北京地域 Workspace ID |
+| `BAILIAN_REGION` | 否 | 当前只允许 `cn-beijing` |
+| `AI_IMAGE_OUTPUT_SIZE` | 否 | `1K`（默认）或 `2K` |
+
+`BAILIAN_OUTPUT_SIZE` 仍作为旧配置兼容项，但新配置推荐使用
+`AI_IMAGE_OUTPUT_SIZE`。
+
+## 调用流程
+
+- `POST /api/v1/generations`：multipart 创建任务。
 - `GET /api/v1/generations/{requestId}`：查询任务。
-- `GET /api/v1/generations/{requestId}/result`：下载已缓存的结果。
+- `GET /api/v1/generations/{requestId}/result`：下载 Gateway 缓存的结果。
 - `DELETE /api/v1/generations/{requestId}`：幂等取消客户端任务。
 
-Gateway 固定模型为 `wan2.7-image-pro`、固定 `n=1`，不允许 Unity 指定模型或
-生成数量。用户风格图先传，Editing 宝箱图最后传，使万相按最后一张输入图保持
-宝箱画布比例。模型图片会在临时内存中缓存一小时，之后自动清理。
+Token Plan 的上游图片接口是同步接口。Gateway 会把调用放入后台单任务队列，
+因此 Unity 仍然立即取得任务响应并沿用现有轮询、加载弹窗和取消逻辑。
+取消会终止 Gateway 当前等待的 HTTP 请求，并使迟到结果失效；上游已开始的计算
+是否停止以及是否计费，仍由阿里云服务端行为决定。
 
-当前官方 HTTP 文档没有公开任务取消接口，因此 `DELETE` 会立即停止 Unity
-等待并令迟到结果失效，但不保证已经提交给万相的计算和计费会终止。
+Gateway 固定模型为 `wan2.7-image-pro`，固定 `n=1`，不允许 Unity 指定模型
+或生成数量。用户风格图先传，Editing 宝箱图后传，用最后一张输入图保持宝箱
+画布比例。结果只在 Gateway 内存中临时缓存，一小时后自动清理。
 
-## 生产部署前
+## 密钥安全
 
-当前默认仅适用于本机回环地址。对外部署时还需要：
+- 不要把 Key 粘贴到聊天、Inspector、场景、脚本、配置文件或 Git。
+- 本地开发使用 Windows 用户环境变量；部署时使用平台 Secret 或 KMS。
+- Gateway 日志不输出 Authorization、图片 Base64 或完整提示词。
+- Unity 安装包只包含 Gateway 地址，不包含任何云端凭证。
 
-- HTTPS；
-- 正式用户身份认证，不能依赖 CORS 作为安全边界；
-- 用户/IP 频率限制、并发限制和额度告警；
-- 开发与生产使用不同 Workspace 和 API Key；
-- 反向代理请求体限制；
-- 不记录 Authorization、提示词正文、图片或 Base64；
-- 结果存储的访问控制和自动过期。
+当前服务默认只用于本机回环地址。对外部署前还需增加 HTTPS、用户认证、
+频率和并发限制、额度告警、请求体限制及正式结果存储访问控制。

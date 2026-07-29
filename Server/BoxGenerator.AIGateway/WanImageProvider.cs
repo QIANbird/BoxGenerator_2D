@@ -15,8 +15,13 @@ public enum ProviderTaskStatus
 }
 
 public sealed record ProviderSubmissionResult(
-    string TaskId,
-    string ProviderRequestId);
+    string? TaskId,
+    string? ResultUrl,
+    string ProviderRequestId,
+    string UsageSize)
+{
+    public bool IsCompleted => !string.IsNullOrWhiteSpace(ResultUrl);
+}
 
 public sealed record ProviderTaskResult(
     ProviderTaskStatus Status,
@@ -102,13 +107,21 @@ public sealed class WanImageProvider
             }
         };
 
+        bool useTokenPlan = options.Mode == GatewayMode.TokenPlan;
         Uri endpoint = new(
             options.ApiBaseUri,
-            "services/aigc/image-generation/generation");
+            useTokenPlan
+                ? "services/aigc/multimodal-generation/generation"
+                : "services/aigc/image-generation/generation");
         using HttpRequestMessage request = CreateProviderRequest(
             HttpMethod.Post,
             endpoint);
-        request.Headers.Add("X-DashScope-Async", "enable");
+
+        if (!useTokenPlan)
+        {
+            request.Headers.Add("X-DashScope-Async", "enable");
+        }
+
         request.Content = new StringContent(
             JsonSerializer.Serialize(body),
             Encoding.UTF8,
@@ -117,6 +130,30 @@ public sealed class WanImageProvider
         WanResponse response = await SendAndParseAsync(
             request,
             cancellationToken);
+
+        if (useTokenPlan)
+        {
+            string? resultUrl = FindResultUrl(response);
+
+            if (string.IsNullOrWhiteSpace(resultUrl))
+            {
+                throw new ProviderException(
+                    response.Output?.Code ??
+                    response.Code ??
+                    "invalid_provider_response",
+                    response.Output?.Message ??
+                    response.Message ??
+                    "Token Plan did not return an image URL.",
+                    response.RequestId ?? "");
+            }
+
+            return new ProviderSubmissionResult(
+                null,
+                resultUrl,
+                response.RequestId ?? "",
+                response.Usage?.Size ?? "");
+        }
+
         string taskId = response.Output?.TaskId ?? "";
 
         if (string.IsNullOrWhiteSpace(taskId))
@@ -129,7 +166,9 @@ public sealed class WanImageProvider
 
         return new ProviderSubmissionResult(
             taskId,
-            response.RequestId ?? "");
+            null,
+            response.RequestId ?? "",
+            response.Usage?.Size ?? "");
     }
 
     public async Task<ProviderTaskResult> GetTaskAsync(
@@ -165,16 +204,7 @@ public sealed class WanImageProvider
 
         if (status == ProviderTaskStatus.Succeeded)
         {
-            resultUrl = response.Output?
-                .Choices?
-                .SelectMany(choice =>
-                    choice.Message?.Content ?? Array.Empty<WanContent>())
-                .FirstOrDefault(item =>
-                    string.Equals(
-                        item.Type,
-                        "image",
-                        StringComparison.OrdinalIgnoreCase))?
-                .Image;
+            resultUrl = FindResultUrl(response);
 
             if (string.IsNullOrWhiteSpace(resultUrl))
             {
@@ -369,6 +399,21 @@ public sealed class WanImageProvider
         request.Headers.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
         return request;
+    }
+
+    private static string? FindResultUrl(WanResponse response)
+    {
+        return response.Output?
+            .Choices?
+            .SelectMany(choice =>
+                choice.Message?.Content ?? Array.Empty<WanContent>())
+            .FirstOrDefault(item =>
+                string.Equals(
+                    item.Type,
+                    "image",
+                    StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrWhiteSpace(item.Image))?
+            .Image;
     }
 
     private static Dictionary<string, string> ImageContent(
